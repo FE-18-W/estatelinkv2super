@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% block title %}Respond to {{ order_label }}{% endblock %}
+{% block content %}
+<div style="max-width:900px;margin:2rem auto;padding:1rem;">
+    <h1 style="margin-bottom:1rem;color:#00f2fe;">Respond to {{ order_label }}</h1>
+    <div class="panel panel-orange" style="padding:1.5rem;">
+        <h3 style="margin-top:0;">Order Details</h3>
+        <p><strong>Customer:</strong> {{ order.customer.username }}</p>
+        {% if order_type == 'gas' %}
+            <p><strong>Gas KGs:</strong> {{ order.kgs }}</p>
+            <p><strong>Price:</strong> KSh {{ order.price }}</p>
+            <p><strong>Delivery address:</strong> {{ order.block_name }} {{ order.house_number }}</p>
+        {% else %}
+            <p><strong>Item:</strong> {{ order.item_name }}</p>
+            <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+            <p><strong>Price:</strong> KSh {{ order.price }}</p>
+            <p><strong>Description:</strong> {{ order.description|default:'No description' }}</p>
+        {% endif %}
+        <p><strong>Status:</strong> {{ order.status }}</p>
+        <p><strong>Placed:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+    </div>
+
+    <div class="panel panel-red" style="margin-top:1.5rem;">
+        <h3>Respond</h3>
+        {% if order.status == 'Pending' %}
+        <form method="post" class="quick-form" style="flex-direction:column;align-items:stretch;">
+            {% csrf_token %}
+            <textarea name="response_message" rows="5" placeholder="Enter acceptance or decline reason" required style="width:100%;border-radius:0.6rem;border:1px solid rgba(255,255,255,0.1);padding:0.8rem;background:rgba(255,255,255,0.04);color:#f8fafc;"></textarea>
+            <div class="actions" style="margin-top:1rem;">
+                <button type="submit" name="action" value="accept" class="btn btn-green">Accept</button>
+                <button type="submit" name="action" value="decline" class="btn btn-red">Decline</button>
+            </div>
+        </form>
+        {% elif order.status == 'Accepted' %}
+        <p style="color:#cbd5e1;margin-bottom:1rem;">Your order is accepted. Send it on the way or mark as delivered.</p>
+        <div class="actions" style="margin-top:1rem;">
+            <form method="post" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="on_the_way" class="btn btn-blue">On The Way</button></form>
+            <form method="post" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="delivered" class="btn btn-green">Delivered</button></form>
+        </div>
+        {% elif order.status == 'On The Way' %}
+        <p style="color:#cbd5e1;margin-bottom:1rem;">Order is on the way. Mark it delivered when completed.</p>
+        <form method="post" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="delivered" class="btn btn-green">Delivered</button></form>
+        {% else %}
+        <p style="color:#a0aec0;">No further actions are available for this order.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

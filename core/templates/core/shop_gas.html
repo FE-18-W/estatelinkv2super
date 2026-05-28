@@ -1,0 +1,198 @@
+{% extends 'core/base.html' %}
+{% block title %}Shop & Gas{% endblock %}
+{% block content %}
+<style>
+  body { background: #0a0f1e !important; }
+  .sg-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sg-header { margin-bottom: 2.5rem; }
+  .sg-title { font-size: 2rem; font-weight: 800; color: #fbbf24; text-shadow: 0 0 12px rgba(251,191,36,0.4); margin-bottom: 0.5rem; }
+  .sg-subtitle { color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; }
+  
+  .sg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem; }
+  @media (max-width: 1024px) { .sg-grid { grid-template-columns: 1fr; } }
+  
+  .sg-card { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem; padding: 1.8rem; transition: all 0.3s ease; }
+  .sg-card:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(251,191,36,0.1); }
+  .sg-card.no-vendors { border-left: 4px solid #fbbf24; }
+  
+  .sg-card-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid rgba(255,255,255,0.05); }
+  .sg-card-icon { font-size: 1.5rem; }
+  .sg-card-title { font-size: 1.2rem; font-weight: 700; color: #fbbf24; }
+  
+  .sg-vendor-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.2rem; }
+  .sg-vendor-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.8rem; padding: 1rem; transition: all 0.2s; }
+  .sg-vendor-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(251,191,36,0.3); }
+  .sg-vendor-name { font-weight: 600; color: #e0f0ff; font-size: 0.95rem; margin-bottom: 0.3rem; }
+  
+  .sg-form { display: flex; flex-direction: column; gap: 0.8rem; }
+  .sg-form label { font-size: 0.85rem; font-weight: 600; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sg-form select, .sg-form input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 0.7rem 0.9rem; color: white; font-size: 0.9rem; outline: none; }
+  .sg-form select:focus, .sg-form input:focus { border-color: #fbbf24; background: rgba(255,255,255,0.08); }
+  
+  .sg-submit-btn { background: linear-gradient(135deg, #fbbf24, #d97706); border: none; color: #1a1a2e; padding: 0.8rem 1.5rem; border-radius: 0.6rem; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+  .sg-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(251,191,36,0.3); }
+  
+  .sg-orders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2.5rem; }
+  @media (max-width: 1024px) { .sg-orders-grid { grid-template-columns: 1fr; } }
+  
+  .sg-order-section { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(239,68,68,0.2); border-radius: 1.5rem; padding: 1.8rem; }
+  .sg-order-section-title { font-size: 1.1rem; font-weight: 700; color: #fbbf24; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 2px solid rgba(239,68,68,0.3); }
+  
+  .sg-order-card { background: rgba(255,255,255,0.03); border-left: 4px solid #f97316; border-radius: 0.8rem; padding: 1rem; margin-bottom: 0.8rem; }
+  .sg-order-title { font-weight: 700; color: #fbbf24; margin-bottom: 0.4rem; font-size: 0.95rem; }
+  .sg-order-detail { color: #a0aec0; font-size: 0.85rem; margin: 0.2rem 0; }
+  .sg-status-badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 0.4rem; font-size: 0.75rem; font-weight: 600; background: rgba(251,191,36,0.2); color: #fbbf24; }
+  
+  .sg-empty-state { text-align: center; padding: 2rem; color: #6b7280; }
+  .sg-empty-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+  .sg-empty-text { font-weight: 500; color: #9ca3af; }
+</style>
+
+<div class="sg-container">
+  <div class="sg-header">
+    <h1 class="sg-title">🛒 Shop & Gas Services</h1>
+    <p class="sg-subtitle">Order quality gas refills and shop goods directly from estate vendors. Place orders instantly and track delivery in real-time.</p>
+  </div>
+
+  <div class="sg-grid">
+    <!-- Gas Vendor Card -->
+    <div class="sg-card {% if not gas_vendors %}no-vendors{% endif %}">
+      <div class="sg-card-header">
+        <span class="sg-card-icon">⛽</span>
+        <h3 class="sg-card-title">Gas Refill</h3>
+      </div>
+      
+      {% if gas_vendors %}
+        <div class="sg-vendor-list">
+          {% for vendor in gas_vendors %}
+            <div class="sg-vendor-item">
+              <div class="sg-vendor-name">{{ vendor.name }}</div>
+              <div style="font-size:0.8rem;color:#6b7280;">⭐ {{ vendor.rating|default:"4.5" }}/5 • {{ vendor.estate.name }}</div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <form method="post" class="sg-form">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="gas">
+          {% if gas_form.non_field_errors %}
+            <div style="background:rgba(254,59,59,0.15);color:#feb2b2;padding:0.8rem;border-radius:0.6rem;border-left:3px solid #ff3b3b;font-size:0.85rem;">{{ gas_form.non_field_errors }}</div>
+          {% endif %}
+          <div>
+            {{ gas_form.vendor.label_tag }}
+            {{ gas_form.vendor }}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+            <div>{{ gas_form.kgs.label_tag }}{{ gas_form.kgs }}</div>
+            <div>{{ gas_form.price.label_tag }}{{ gas_form.price }}</div>
+          </div>
+          <div>{{ gas_form.block_name.label_tag }}{{ gas_form.block_name }}</div>
+          <div>{{ gas_form.house_number.label_tag }}{{ gas_form.house_number }}</div>
+          <button type="submit" class="sg-submit-btn">📤 Submit Gas Order</button>
+        </form>
+      {% else %}
+        <div class="sg-empty-state">
+          <div class="sg-empty-icon">📭</div>
+          <p class="sg-empty-text">No gas vendors available</p>
+          <p style="font-size:0.8rem;color:#6b7280;margin-top:0.5rem;">Contact your estate admin to add vendors</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Shop Vendor Card -->
+    <div class="sg-card {% if not shop_owners %}no-vendors{% endif %}">
+      <div class="sg-card-header">
+        <span class="sg-card-icon">🏪</span>
+        <h3 class="sg-card-title">Shop Goods</h3>
+      </div>
+      
+      {% if shop_owners %}
+        <div class="sg-vendor-list">
+          {% for owner in shop_owners %}
+            <div class="sg-vendor-item">
+              <div class="sg-vendor-name">{{ owner.name }}</div>
+              <div style="font-size:0.8rem;color:#6b7280;">⭐ 4.8/5 • {{ owner.estate.name }}</div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <form method="post" class="sg-form">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="shop">
+          {% if shop_form.non_field_errors %}
+            <div style="background:rgba(254,59,59,0.15);color:#feb2b2;padding:0.8rem;border-radius:0.6rem;border-left:3px solid #ff3b3b;font-size:0.85rem;">{{ shop_form.non_field_errors }}</div>
+          {% endif %}
+          <div>{{ shop_form.owner.label_tag }}{{ shop_form.owner }}</div>
+          <div>{{ shop_form.item_name.label_tag }}{{ shop_form.item_name }}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+            <div>{{ shop_form.quantity.label_tag }}{{ shop_form.quantity }}</div>
+            <div>{{ shop_form.price.label_tag }}{{ shop_form.price }}</div>
+          </div>
+          <div>{{ shop_form.description.label_tag }}{{ shop_form.description }}</div>
+          <button type="submit" class="sg-submit-btn">📤 Submit Shop Order</button>
+        </form>
+      {% else %}
+        <div class="sg-empty-state">
+          <div class="sg-empty-icon">📭</div>
+          <p class="sg-empty-text">No shop owners available</p>
+          <p style="font-size:0.8rem;color:#6b7280;margin-top:0.5rem;">Contact your estate admin to add vendors</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="sg-orders-grid">
+    <!-- Active Orders -->
+    <div class="sg-order-section">
+      <div class="sg-order-section-title">🔥 Active Orders</div>
+      {% if active_gas_order or active_shop_order %}
+        {% if active_gas_order %}
+          <div class="sg-order-card">
+            <div class="sg-order-title">Gas Order #{{ active_gas_order.id }}</div>
+            <div class="sg-order-detail">{{ active_gas_order.kgs }}kg • KSh {{ active_gas_order.price }}</div>
+            <div class="sg-order-detail">📍 {{ active_gas_order.block_name }} {{ active_gas_order.house_number }}</div>
+            <div class="sg-order-detail">Status: <span class="sg-status-badge">{{ active_gas_order.status }}</span></div>
+          </div>
+        {% endif %}
+        {% if active_shop_order %}
+          <div class="sg-order-card">
+            <div class="sg-order-title">Shop Order #{{ active_shop_order.id }}</div>
+            <div class="sg-order-detail">{{ active_shop_order.quantity }}× {{ active_shop_order.item_name }} • KSh {{ active_shop_order.price }}</div>
+            <div class="sg-order-detail">📝 {{ active_shop_order.description|default:"No description" }}</div>
+            <div class="sg-order-detail">Status: <span class="sg-status-badge">{{ active_shop_order.status }}</span></div>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="sg-empty-state" style="padding:1.5rem;">
+          <p class="sg-empty-text">No active orders</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Order History -->
+    <div class="sg-order-section">
+      <div class="sg-order-section-title">📜 Order History</div>
+      {% if my_gas_orders or my_shop_orders %}
+        {% for order in my_gas_orders %}
+          <div class="sg-order-card">
+            <div class="sg-order-title">Gas Order #{{ order.id }}</div>
+            <div class="sg-order-detail">{{ order.kgs }}kg • {{ order.block_name }} {{ order.house_number }}</div>
+            <div class="sg-order-detail">Status: <span class="sg-status-badge">{{ order.status }}</span></div>
+          </div>
+        {% endfor %}
+        {% for order in my_shop_orders %}
+          <div class="sg-order-card">
+            <div class="sg-order-title">Shop Order #{{ order.id }}</div>
+            <div class="sg-order-detail">{{ order.quantity }}× {{ order.item_name }} • Qty {{ order.quantity }}</div>
+            <div class="sg-order-detail">Status: <span class="sg-status-badge">{{ order.status }}</span></div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="sg-empty-state" style="padding:1.5rem;">
+          <p class="sg-empty-text">No order history</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

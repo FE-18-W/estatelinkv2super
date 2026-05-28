@@ -1,0 +1,312 @@
+{% extends 'core/base.html' %}
+{% block title %}System Management{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .mgmt-container { max-width: 1400px; margin: 0 auto; padding: 1rem; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+  .page-title { font-size: 1.8rem; font-weight: 700; color: #fbbf24; text-shadow: 0 0 12px rgba(251, 191, 36, 0.4); letter-spacing: 0.5px; }
+  .search-form { display: flex; gap: 0.5rem; flex: 1; max-width: 500px; }
+  .search-input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 0.6rem 1rem; color: white; outline: none; font-size: 0.9rem; }
+  .search-input:focus { border-color: #fbbf24; }
+  .search-btn { background: linear-gradient(135deg, #fbbf24, #d97706); border: none; color: #1a1a2e; padding: 0.6rem 1.2rem; border-radius: 0.6rem; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-card { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; padding: 1.2rem; text-align: center; }
+  .stat-number { font-size: 2rem; font-weight: 800; color: #fbbf24; }
+  .stat-label { color: #6b7280; font-size: 0.85rem; margin-top: 0.3rem; }
+  
+  .tab-container { margin-bottom: 1.5rem; }
+  .tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid rgba(255,255,255,0.1); overflow-x: auto; }
+  .tab-btn { padding: 0.8rem 1.5rem; background: none; border: none; color: #a0aec0; font-weight: 600; cursor: pointer; font-size: 0.95rem; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap; }
+  .tab-btn:hover { color: #fbbf24; }
+  .tab-btn.active { color: #fbbf24; border-bottom-color: #fbbf24; }
+  
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  
+  .section-title { font-size: 1.3rem; font-weight: 700; color: #e0f0ff; margin: 1.5rem 0 1rem; }
+  .admin-card { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.2rem; padding: 1.5rem; margin-bottom: 1rem; }
+  .admin-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 0.8rem; }
+  .admin-name { font-size: 1.2rem; font-weight: 700; color: #fbbf24; margin: 0; }
+  .badge { padding: 0.2rem 0.8rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-approved { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+  .badge-pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); }
+  .admin-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.8rem; }
+  .detail-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .detail-label { font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-value { color: #e0f0ff; font-size: 0.9rem; }
+  
+  .user-table { width: 100%; border-collapse: collapse; background: rgba(18, 28, 46, 0.6); border-radius: 1rem; overflow: hidden; }
+  .user-table th { background: rgba(251, 191, 36, 0.1); padding: 0.8rem; text-align: left; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; }
+  .user-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e0f0ff; font-size: 0.85rem; }
+  .no-results { text-align: center; color: #6b7280; padding: 2rem; }
+  
+  .action-buttons { display: flex; gap: 0.5rem; }
+  .btn { padding: 0.4rem 0.8rem; border: none; border-radius: 0.4rem; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: opacity 0.2s; }
+  .btn-approve { background: #059669; color: white; }
+  .btn-approve:hover { opacity: 0.8; }
+  .btn-reject { background: #dc2626; color: white; }
+  .btn-reject:hover { opacity: 0.8; }
+</style>
+
+<div class="mgmt-container">
+  <div class="page-header">
+    <h1 class="page-title">System Management</h1>
+    <form method="get" class="search-form">
+      <input type="text" name="search" class="search-input" placeholder="Search..." value="{{ search }}">
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div style="padding: 1rem; margin-bottom: 1rem; border-radius: 0.5rem; {% if 'success' in message.tags %}background: #059669;{% elif 'error' in message.tags %}background: #dc2626;{% else %}background: #3b82f6;{% endif %} color: white;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_pending }}</div>
+      <div class="stat-label">Pending User Approvals</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ total_admins }}</div>
+      <div class="stat-label">Estate Admins</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ total_users }}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ total_independent }}</div>
+      <div class="stat-label">Independent Users</div>
+    </div>
+  </div>
+
+  <div class="tab-container">
+    <div class="tabs">
+      <button type="button" class="tab-btn {% if tab == 'pending_users' %}active{% endif %}" onclick="switchTab(event, 'pending_users')">
+        📋 Pending Approvals <span style="background: #f59e0b; color: #1a1a2e; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; margin-left: 0.3rem;">{{ total_pending }}</span>
+      </button>
+      <button type="button" class="tab-btn {% if tab == 'admins' %}active{% endif %}" onclick="switchTab(event, 'admins')">
+        👤 Estate Admins <span style="background: #3b82f6; color: white; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; margin-left: 0.3rem;">{{ total_admins }}</span>
+      </button>
+      <button type="button" class="tab-btn {% if tab == 'users' %}active{% endif %}" onclick="switchTab(event, 'users')">
+        👥 All Users <span style="background: #8b5cf6; color: white; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; margin-left: 0.3rem;">{{ total_users }}</span>
+      </button>
+      <button type="button" class="tab-btn {% if tab == 'vendor_deletions' %}active{% endif %}" onclick="switchTab(event, 'vendor_deletions')">
+        🗑️ Vendor Deletions <span style="background: #ef4444; color: white; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; margin-left: 0.3rem;">{{ total_vendor_deletions }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Pending Users Tab -->
+  <div id="pending_users" class="tab-content {% if tab == 'pending_users' %}active{% endif %}">
+    <h2 class="section-title">New User Approvals</h2>
+    {% if pending_users %}
+      <div style="overflow-x: auto;">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Estate</th>
+              <th>Registered</th>
+              <th style="text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in pending_users %}
+            <tr>
+              <td>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="display: inline; margin-right: 0.5rem;">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                {{ user.username }}
+              </td>
+              <td>{{ user.email }}</td>
+              <td>
+                {% if user.userprofile %}
+                  {{ user.userprofile.estate.name }}
+                {% else %}
+                  <span style="color: #9ca3af;">N/A</span>
+                {% endif %}
+              </td>
+              <td>{{ user.date_joined|date:"M d, Y" }}</td>
+              <td style="text-align: center;">
+                <div class="action-buttons">
+                  <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" class="btn btn-approve">✓ Approve</button>
+                  </form>
+                  <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" class="btn btn-reject" onclick="return confirm('Reject this user?');">✗ Reject</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="no-results">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="margin: 0 auto 1rem; display: block;">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <p style="color: #e0f0ff; font-weight: 600;">All users approved!</p>
+        <p style="color: #6b7280;">No pending approvals.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Estate Admins Tab -->
+  <div id="admins" class="tab-content {% if tab == 'admins' %}active{% endif %}">
+    <h2 class="section-title">Estate Admins & Their Estates</h2>
+    {% if admin_data %}
+      {% for item in admin_data %}
+      <div class="admin-card">
+        <div class="admin-header">
+          <p class="admin-name">{{ item.admin.user.get_full_name|default:item.admin.user.username }}</p>
+          {% if item.admin.is_subscribed %}
+            <span class="badge badge-approved">Approved</span>
+          {% else %}
+            <span class="badge badge-pending">Pending</span>
+          {% endif %}
+        </div>
+        <div class="admin-details">
+          <div class="detail-item">
+            <span class="detail-label">Estate</span>
+            <span class="detail-value">{{ item.estate.name }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Location</span>
+            <span class="detail-value">{{ item.estate.location|default:"Not set" }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Users Managed</span>
+            <span class="detail-value">{{ item.user_count }} residents</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Approved By</span>
+            <span class="detail-value">{{ item.admin.approved_by.username|default:"Pending" }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-results">No estate admins found.</div>
+    {% endif %}
+  </div>
+
+  <!-- All Users Tab -->
+  <div id="users" class="tab-content {% if tab == 'users' %}active{% endif %}">
+    <h2 class="section-title">Independent Users (No Admin)</h2>
+    {% if independent_users %}
+      <div style="overflow-x: auto;">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Estate</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in independent_users %}
+            <tr>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email|default:"—" }}</td>
+              <td>{{ user.userprofile.estate.name|default:"—" }}</td>
+              <td>{{ user.userprofile.estate.location|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="no-results">No independent users found.</div>
+    {% endif %}
+  </div>
+
+  <!-- Vendor Deletion Requests Tab -->
+  <div id="vendor_deletions" class="tab-content {% if tab == 'vendor_deletions' %}active{% endif %}">
+    <h2 class="section-title">Pending Vendor Deletion Requests</h2>
+    {% if vendor_deletions %}
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for deletion in vendor_deletions %}
+        <div class="admin-card" style="border-left: 4px solid #ef4444;">
+          <div class="admin-header">
+            <p class="admin-name">{{ deletion.vendor_name }}</p>
+            <span class="badge badge-pending">{{ deletion.get_vendor_type_display }}</span>
+          </div>
+          <div class="admin-details">
+            <div class="detail-item">
+              <span class="detail-label">Estate</span>
+              <span class="detail-value">{{ deletion.estate.name }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Requested By</span>
+              <span class="detail-value">{{ deletion.requested_by.get_full_name|default:deletion.requested_by.username }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Requested On</span>
+              <span class="detail-value">{{ deletion.created_at|date:"M d, Y - H:i" }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Reason</span>
+              <span class="detail-value">{{ deletion.reason|default:"No reason provided" }}</span>
+            </div>
+          </div>
+          <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+            <a href="{% url 'approve_vendor_deletion' deletion.id %}" class="btn btn-approve">✓ Review</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-results">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="margin: 0 auto 1rem; display: block;">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <p style="color: #e0f0ff; font-weight: 600;">No pending vendor deletion requests</p>
+        <p style="color: #6b7280;">All vendor deletions have been processed.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  function switchTab(event, tabName) {
+    event.preventDefault();
+    
+    // Hide all tab content
+    const contents = document.querySelectorAll('.tab-content');
+    contents.forEach(content => content.classList.remove('active'));
+    
+    // Remove active class from all buttons
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    // Show selected tab and activate button
+    document.getElementById(tabName).classList.add('active');
+    event.target.closest('.tab-btn').classList.add('active');
+    
+    // Update URL
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    window.history.replaceState({}, '', url);
+  }
+</script>
+
+{% endblock %}

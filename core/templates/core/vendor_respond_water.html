@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+{% block title %}Respond to Water Order{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:2rem auto;background:rgba(18,28,46,0.8);border-radius:1.5rem;padding:2rem;">
+  <h2 style="color:#00d4ff;">Water Order Response</h2>
+  <p style="color:#e0f0ff;"><strong>Customer:</strong> {{ order.customer.username }}</p>
+  <p style="color:#e0f0ff;"><strong>Vendor:</strong> {{ order.vendor.name }}</p>
+  <p style="color:#e0f0ff;"><strong>Status:</strong> {{ order.status }}</p>
+  
+  <form method="post" style="margin-top:1.5rem;">
+    {% csrf_token %}
+    <textarea name="response_message" rows="3" placeholder="Write a response to the customer..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:0.5rem;padding:0.7rem;color:white;margin-bottom:1rem;"></textarea>
+    
+    <input type="text" name="driver_name" placeholder="Driver name (if accepting)" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:0.5rem;padding:0.5rem;color:white;margin-bottom:0.5rem;">
+    
+    <input type="number" name="eta_minutes" placeholder="ETA in minutes" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:0.5rem;padding:0.5rem;color:white;margin-bottom:1rem;">
+    
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <button type="submit" name="action" value="accept" class="btn btn-green">Accept Order</button>
+      <button type="submit" name="action" value="decline" class="btn btn-red">Decline</button>
+      <button type="submit" name="action" value="on_the_way" class="btn btn-orange">Mark On The Way</button>
+      <button type="submit" name="action" value="delivered" class="btn btn-green">Mark Delivered</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

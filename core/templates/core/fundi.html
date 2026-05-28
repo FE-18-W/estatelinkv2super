@@ -1,0 +1,193 @@
+{% extends 'core/base.html' %}
+{% block title %}Fundis & Help{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; color: #e0f0ff; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .page-container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+  .page-header h2 { font-size: 2rem; font-weight: 700; color: #f97316; text-shadow: 0 0 12px rgba(249,115,22,0.4); margin-bottom: 0.5rem; display: inline-block; }
+  .category-title { font-size: 1.3rem; font-weight: 600; color: #b0c7e0; margin: 1.5rem 0 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+  .category-title::before { content: ""; display: inline-block; width: 6px; height: 22px; background: linear-gradient(180deg, #f97316, #ffb347); border-radius: 4px; }
+  .provider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 1.5rem; }
+  .provider-card { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.2rem; padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; transition: all 0.25s ease; position: relative; overflow: hidden; }
+  .provider-card:hover { border-color: rgba(249, 115, 22, 0.5); box-shadow: 0 0 25px rgba(249, 115, 22, 0.15); transform: translateY(-3px); }
+  .provider-card .info { display: flex; flex-direction: column; gap: 0.3rem; }
+  .provider-card .name { font-weight: 600; font-size: 1.1rem; color: #e8f0ff; }
+  .rating-stars { display: flex; align-items: center; gap: 2px; margin-top: 2px; }
+  .star-filled { fill: #f59e0b; } .star-empty { fill: #4b5563; }
+  .rating-value { font-size: 0.8rem; color: #9ca3af; margin-left: 4px; }
+  .verified-badge { display: inline-flex; align-items: center; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; gap: 4px; }
+  .verified-badge svg { width: 12px; height: 12px; stroke: #10b981; }
+  .book-btn { background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; padding: 0.45rem 1.2rem; border-radius: 0.7rem; font-weight: 500; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
+  .book-btn:hover { box-shadow: 0 0 25px rgba(249, 115, 22, 0.5); transform: scale(1.03); }
+  .modal-overlay { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); }
+  .modal-card { background: rgba(15, 25, 45, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 1.2rem; padding: 1.8rem; color: #e0f0ff; max-width: 480px; width: 90%; }
+  .modal-card h3 { font-weight: 600; margin-bottom: 1rem; color: #ffb347; }
+  .modal-card label { display: block; font-size: 0.85rem; font-weight: 500; color: #b0c7e0; margin-bottom: 0.3rem; margin-top: 0.8rem; }
+  .modal-card select, .modal-card input, .modal-card textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.8rem; padding: 0.7rem; color: white; outline: none; transition: border 0.2s; }
+  .modal-card select option { background: #0f192d; color: #e0f0ff; }
+  .modal-card select:focus, .modal-card input:focus, .modal-card textarea:focus { border-color: #f97316; box-shadow: 0 0 10px rgba(249,115,22,0.2); }
+  .modal-card textarea { resize: vertical; min-height: 80px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem; }
+  .cancel-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ccd; padding: 0.4rem 1.2rem; border-radius: 0.6rem; cursor: pointer; transition: 0.2s; }
+  .cancel-btn:hover { background: rgba(255,255,255,0.2); }
+  .confirm-btn { background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; padding: 0.4rem 1.5rem; border-radius: 0.6rem; font-weight: 500; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(249,115,22,0.3); }
+  .confirm-btn:hover { box-shadow: 0 0 25px rgba(249,115,22,0.6); }
+  .request-form { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.2rem; padding: 1.8rem; margin-top: 2rem; max-width: 600px; }
+  .request-form h3 { font-weight: 600; color: #e0f0ff; margin-bottom: 1.2rem; font-size: 1.2rem; }
+  .request-form label { display: block; font-size: 0.85rem; font-weight: 500; color: #b0c7e0; margin-bottom: 0.3rem; margin-top: 0.8rem; }
+  .request-form select, .request-form input, .request-form textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 0.65rem; color: white; outline: none; transition: border 0.2s; }
+  .request-form select option { background: #0f192d; color: #e0f0ff; }
+  .request-form select:focus, .request-form input:focus, .request-form textarea:focus { border-color: #f97316; box-shadow: 0 0 10px rgba(249,115,22,0.2); }
+  .request-form textarea { resize: vertical; min-height: 80px; }
+  .submit-btn { background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; padding: 0.7rem 2rem; border-radius: 0.6rem; font-weight: 600; cursor: pointer; margin-top: 1.2rem; box-shadow: 0 0 15px rgba(249,115,22,0.2); transition: 0.2s; font-size: 0.9rem; }
+  .submit-btn:hover { box-shadow: 0 0 25px rgba(249,115,22,0.5); }
+  .success-message { display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0.8rem 1.2rem; border-radius: 0.8rem; margin-top: 1rem; text-align: center; }
+
+  /* My Requests section */
+  .my-requests { margin-top: 3rem; }
+  .my-requests h3 { font-size: 1.4rem; font-weight: 700; color: #ffb347; margin-bottom: 1rem; }
+  .req-card { background: rgba(18, 28, 46, 0.7); border-radius: 1rem; padding: 1rem 1.2rem; margin-bottom: 0.8rem; border-left: 4px solid #f97316; }
+  .req-card.accepted { border-left-color: #10b981; }
+  .req-card.cancelled { border-left-color: #ef4444; }
+  .req-card.completed { border-left-color: #3b82f6; opacity: 0.7; }
+  .req-card h4 { margin: 0 0 0.3rem 0; color: #e0f0ff; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+  .req-status { font-size: 0.7rem; padding: 0.15rem 0.6rem; border-radius: 999px; font-weight: 600; }
+  .status-pending { background: rgba(251,191,36,0.2); color: #fbbf24; }
+  .status-accepted { background: rgba(16,185,129,0.2); color: #34d399; }
+  .status-cancelled { background: rgba(239,68,68,0.2); color: #fca5a5; }
+  .status-completed { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .req-desc { color: #a0aec0; font-size: 0.85rem; margin: 0.3rem 0; }
+  .admin-response { background: rgba(255,255,255,0.03); border-radius: 0.5rem; padding: 0.5rem 0.8rem; margin-top: 0.5rem; color: #b0c7e0; font-size: 0.85rem; }
+  .admin-response strong { color: #e0f0ff; }
+  .req-time { color: #6b7280; font-size: 0.7rem; margin-top: 0.3rem; }
+</style>
+
+<div class="page-container">
+  <div class="page-header"><h2>Book a Fundi or House-help</h2></div>
+
+  {% for category in categories %}
+    <div class="category-title">{{ category.name }}</div>
+    <div class="provider-grid">
+      {% for provider in providers %}
+        {% if provider.category == category %}
+          <div class="provider-card">
+            <div class="info">
+              <span class="name">{{ provider.user.get_full_name|default:provider.user.username }}</span>
+              <div class="rating-stars">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= provider.rating|floatformat:"0" %}
+                    <svg width="15" height="15" viewBox="0 0 24 24" class="star-filled"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  {% else %}
+                    <svg width="15" height="15" viewBox="0 0 24 24" class="star-empty"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  {% endif %}
+                {% endfor %}
+                <span class="rating-value">{{ provider.rating }}</span>
+              </div>
+              {% if provider.verified %}
+                <span class="verified-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Verified
+                </span>
+              {% endif %}
+            </div>
+            <button onclick="document.getElementById('bookModal-{{ provider.id }}').classList.remove('hidden')" class="book-btn">Book</button>
+
+            <div id="bookModal-{{ provider.id }}" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+              <div class="modal-card">
+                <h3>Book {{ provider.user.get_full_name|default:provider.user.username }}</h3>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="provider" value="{{ provider.id }}">
+                  <label>Type of Fundi</label>
+                  <select name="fundi_type" required>
+                    <option value="">-- Select --</option>
+                    <option value="Electrician">Electrician</option><option value="Plumber">Plumber</option>
+                    <option value="Carpenter">Carpenter</option><option value="Welder">Welder</option>
+                    <option value="Painter">Painter</option><option value="Mason">Mason</option>
+                    <option value="CCTV Technician">CCTV Technician</option><option value="Water Pump Technician">Water Pump Technician</option>
+                    <option value="Gardener/Landscaper">Gardener/Landscaper</option>
+                    <option value="Appliance Repair Technician">Appliance Repair Technician</option>
+                    <option value="Locksmith">Locksmith</option><option value="General Handyman">General Handyman</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <label>If Other, specify</label>
+                  <input type="text" name="custom_type" placeholder="e.g., Roof Repair">
+                  <label>When needed</label>
+                  <input type="datetime-local" name="time_needed" required>
+                  <label>Describe the problem</label>
+                  <textarea name="description" rows="3" placeholder="What needs to be fixed?"></textarea>
+                  <div class="modal-actions">
+                    <button type="button" onclick="this.closest('.fixed').classList.add('hidden')" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="confirm-btn">Confirm Booking</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% empty %}
+    <p style="color:#7f8ea3;">No service providers available yet.</p>
+  {% endfor %}
+
+  <div class="request-form">
+    <h3>Request a Fundi (General)</h3>
+    <form method="post">
+      {% csrf_token %}
+      <label>Type of Fundi</label>
+      <select name="fundi_type" required>
+        <option value="">-- Select --</option>
+        <option value="Electrician">Electrician</option><option value="Plumber">Plumber</option>
+        <option value="Carpenter">Carpenter</option><option value="Welder">Welder</option>
+        <option value="Painter">Painter</option><option value="Mason">Mason</option>
+        <option value="CCTV Technician">CCTV Technician</option><option value="Water Pump Technician">Water Pump Technician</option>
+        <option value="Gardener/Landscaper">Gardener/Landscaper</option>
+        <option value="Appliance Repair Technician">Appliance Repair Technician</option>
+        <option value="Locksmith">Locksmith</option><option value="General Handyman">General Handyman</option>
+        <option value="Other">Other</option>
+      </select>
+      <label>If Other, specify</label>
+      <input type="text" name="custom_type" placeholder="e.g., Tiler">
+      <label>When needed</label>
+      <input type="datetime-local" name="time_needed" required>
+      <label>Describe the job</label>
+      <textarea name="description" rows="3" placeholder="Describe what you need..."></textarea>
+      <button type="submit" class="submit-btn">Submit Request</button>
+    </form>
+    <div class="success-message" id="success-msg">Request submitted! Admin will respond shortly.</div>
+  </div>
+
+  {% if my_requests %}
+  <div class="my-requests">
+    <h3>My Requests & Responses</h3>
+    {% for req in my_requests %}
+      <div class="req-card {% if req.status == 'accepted' %}accepted{% elif req.status == 'cancelled' %}cancelled{% elif req.status == 'completed' %}completed{% endif %}">
+        <h4>
+          {{ req.fundi_type }}
+          <span class="req-status {% if req.status == 'pending' %}status-pending{% elif req.status == 'accepted' %}status-accepted{% elif req.status == 'cancelled' %}status-cancelled{% else %}status-completed{% endif %}">
+            {{ req.get_status_display }}
+          </span>
+        </h4>
+        <p class="req-desc">{{ req.description|default:"No description" }}</p>
+        {% if req.time_needed %}<p class="req-time">Needed: {{ req.time_needed|date:"M d, Y - H:i" }}</p>{% endif %}
+        {% if req.admin_response %}
+        <div class="admin-response">
+          <strong>Admin response:</strong> {{ req.admin_response }}
+        </div>
+        {% endif %}
+        <p class="req-time">Requested: {{ req.created_at|date:"M d, Y - H:i" }}</p>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  const url = new URL(window.location);
+  if (url.searchParams.get('success') === '1') {
+    document.getElementById('success-msg').style.display = 'block';
+    setTimeout(() => document.getElementById('success-msg').style.display = 'none', 5000);
+  }
+</script>
+{% endblock %}

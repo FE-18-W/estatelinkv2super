@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+{% block title %}Marketplace{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .market-container { max-width: 1200px; margin: 0 auto; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media (max-width: 900px) { .market-container { grid-template-columns: 1fr; } }
+  .section-title { font-size: 1.8rem; font-weight: 700; color: #f472b6; text-shadow: 0 0 12px rgba(244, 114, 182, 0.4); margin-bottom: 1.2rem; display: inline-block; letter-spacing: 0.5px; }
+  .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; }
+  .item-card { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(236, 72, 153, 0.15); border-radius: 1rem; overflow: hidden; transition: all 0.25s ease; }
+  .item-card:hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 0 20px rgba(236, 72, 153, 0.2); transform: translateY(-4px); }
+  .item-card.featured { border: 1px solid rgba(236, 72, 153, 0.6); box-shadow: 0 0 15px rgba(236, 72, 153, 0.25); }
+  .item-card.featured:hover { box-shadow: 0 0 25px rgba(236, 72, 153, 0.4); }
+  .item-card img { width: 100%; height: 140px; object-fit: cover; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .item-card .no-image { width: 100%; height: 140px; background: rgba(236, 72, 153, 0.1); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .no-image svg { width: 40px; height: 40px; stroke: #f472b6; opacity: 0.5; }
+  .item-details { padding: 1rem; }
+  .item-details h3 { color: #fce7f3; font-weight: 600; font-size: 1rem; margin: 0 0 0.3rem 0; }
+  .item-details .desc { color: #a0aec0; font-size: 0.8rem; margin-bottom: 0.5rem; line-height: 1.3; }
+  .price { font-size: 1.3rem; font-weight: 700; color: #f472b6; display: flex; align-items: baseline; gap: 0.2rem; }
+  .price .currency { font-size: 0.9rem; font-weight: 700; color: #f472b6; }
+  .seller-info { display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem; font-size: 0.7rem; color: #6b7280; flex-wrap: wrap; gap: 0.3rem; }
+  .seller-info span { display: flex; align-items: center; gap: 3px; }
+  .seller-info svg { width: 14px; height: 14px; stroke: #6b7280; }
+  .featured-badge { background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.5); color: #f9a8d4; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.65rem; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; margin-left: 0.5rem; vertical-align: middle; }
+  .featured-badge svg { width: 10px; height: 10px; stroke: currentColor; }
+  .empty-state { color: #6b7b8f; background: rgba(18, 28, 46, 0.6); border-radius: 1rem; padding: 2rem; text-align: center; grid-column: 1 / -1; }
+  .empty-state svg { width: 40px; height: 40px; stroke: #6b7b8f; margin-bottom: 0.8rem; }
+  .sell-panel { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.2rem; padding: 1.8rem; height: fit-content; }
+  .sell-panel h2 { font-size: 1.8rem; font-weight: 700; color: #f472b6; text-shadow: 0 0 12px rgba(244, 114, 182, 0.4); margin-bottom: 1rem; }
+  .sell-panel input, .sell-panel textarea, .sell-panel select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 0.7rem; color: #e0f0ff; margin-bottom: 1rem; outline: none; transition: border 0.2s; }
+  .sell-panel input:focus, .sell-panel textarea:focus, .sell-panel select:focus { border-color: #ec4899; box-shadow: 0 0 10px rgba(236, 72, 153, 0.2); }
+  .sell-panel textarea { resize: vertical; min-height: 100px; }
+  .sell-panel input[type="file"] { padding: 0.5rem; background: rgba(255,255,255,0.03); }
+  .sell-panel label { display: block; color: #b0c7e0; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.3rem; }
+  .submit-btn { background: linear-gradient(135deg, #ec4899, #be185d); border: none; color: white; padding: 0.6rem 2rem; border-radius: 0.6rem; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 0 18px rgba(236, 72, 153, 0.4); }
+  .submit-btn:hover { box-shadow: 0 0 30px rgba(236, 72, 153, 0.7); transform: scale(1.02); }
+  .contact-seller { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); color: #f9a8d4; padding: 0.2rem 0.7rem; border-radius: 0.4rem; font-size: 0.7rem; text-decoration: none; transition: 0.2s; }
+  .contact-seller:hover { background: rgba(236, 72, 153, 0.3); color: white; }
+  .contact-seller svg { width: 12px; height: 12px; stroke: currentColor; }
+  .phone-number { color: #34d399; font-weight: 500; }
+</style>
+
+<div class="market-container">
+  <div>
+    <h2 class="section-title">Estate Marketplace</h2>
+    <div class="items-grid">
+      {% for item in items %}
+        <div class="item-card {% if item.featured %}featured{% endif %}">
+          {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.title }}">
+          {% else %}
+            <div class="no-image">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </div>
+          {% endif %}
+          <div class="item-details">
+            <h3>
+              {{ item.title }}
+              {% if item.featured %}
+                <span class="featured-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Featured
+                </span>
+              {% endif %}
+            </h3>
+            <p class="desc">{{ item.description|truncatechars:50 }}</p>
+            <div class="price">
+              <span class="currency">KSh</span> {{ item.price }}
+            </div>
+            <div class="seller-info">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                {{ item.seller.username }}
+                {% if item.seller.userprofile.phone %}
+                  <span class="phone-number">· {{ item.seller.userprofile.phone }}</span>
+                {% endif %}
+              </span>
+              <a href="mailto:{{ item.seller.email }}" class="contact-seller">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                Contact
+              </a>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          <p>No items listed yet. Be the first to sell something!</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <div class="sell-panel">
+      <h2>Sell an Item</h2>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="submit-btn">List Item</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstateLink – {% block title %}Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #0a0f1e;
+            color: #e0f0ff;
+            min-height: 100vh;
+        }
+        .glass-nav {
+            background: rgba(15, 25, 45, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 180, 255, 0.08);
+        }
+        .logo-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #00f2fe;
+            text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+            text-decoration: none;
+        }
+        .user-greeting { color: #b0c7e0; display: flex; align-items: center; gap: 0.4rem; }
+        .logout-link {
+            color: #ff6b6b; font-size: 0.85rem; font-weight: 500;
+            padding: 0.3rem 0.8rem; border-radius: 0.5rem; text-decoration: none;
+        }
+        .logout-link:hover { background: rgba(255, 107, 107, 0.15); }
+        .login-link { color: #00f2fe; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+        .admin-link {
+            color: #fbbf24; font-size: 0.85rem; font-weight: 600; text-decoration: none;
+            padding: 0.3rem 0.8rem; border-radius: 0.5rem; border: 1px solid rgba(251, 191, 36, 0.3); transition: all 0.2s;
+        }
+        .admin-link:hover { background: rgba(251, 191, 36, 0.15); border-color: #fbbf24; }
+        .nav-links { display: flex; align-items: center; gap: 0.8rem; }
+    </style>
+</head>
+<body>
+    <nav class="sticky top-0 z-50 glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-2 logo-text">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    EstateLink
+                </a>
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <div class="nav-links">
+                            {% if user.is_superuser %}
+                            <a href="{% url 'admin_management' %}" class="admin-link">Manage Admins</a>
+                            {% endif %}
+                            <span class="user-greeting">{{ user.username }}</span>
+                            <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="login-link">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+</body>
+</html>

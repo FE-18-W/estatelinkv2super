@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+{% block title %}Access Denied{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; }
+  .denied-container {
+    max-width: 600px;
+    margin: 5rem auto;
+    padding: 1rem;
+    text-align: center;
+  }
+  .denied-card {
+    background: rgba(18, 28, 46, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 70, 70, 0.3);
+    border-radius: 1.5rem;
+    padding: 3rem 2rem;
+  }
+  .denied-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(239, 68, 68, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+  .denied-icon svg {
+    width: 40px;
+    height: 40px;
+    stroke: #ef4444;
+  }
+  .denied-card h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff5c5c;
+    margin-bottom: 1rem;
+  }
+  .denied-card p {
+    color: #a0aec0;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+  .denied-card .highlight {
+    color: #fbbf24;
+    font-weight: 600;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 0.7rem 2rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+  }
+  .back-btn:hover {
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+  }
+</style>
+
+<div class="denied-container">
+  <div class="denied-card">
+    <div class="denied-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+    <h1>Access Restricted</h1>
+    <p>You don't have permission to access this area.</p>
+    <p>Only the <span class="highlight">estate super administrator</span> can manage user accounts and system settings.</p>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+      If you're an estate admin, you can manage your estate from the 
+      <a href="{% url 'dashboard' %}" style="color: #60a5fa;">main dashboard</a>.
+    </p>
+    <a href="{% url 'dashboard' %}" class="back-btn">Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}
