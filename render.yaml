@@ -24,7 +24,7 @@ services:
       - key: DJANGO_SUPERUSER_EMAIL
         value: felixochieng5785@gmail.com
       - key: DJANGO_SUPERUSER_PASSWORD
-        value: D0n0r2026
+        value: 171630m@felix
       - key: DATABASE_URL
         fromDatabase:
           name: estatelink-db
