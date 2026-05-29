@@ -8,7 +8,7 @@ services:
       python manage.py collectstatic --noinput
     releaseCommand: |
       python manage.py migrate
-      python -c "import os, django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings'); django.setup(); from django.contrib.auth import get_user_model; User = get_user_model(); username=os.environ['DJANGO_SUPERUSER_USERNAME']; email=os.environ['DJANGO_SUPERUSER_EMAIL']; password=os.environ['DJANGO_SUPERUSER_PASSWORD']; User.objects.filter(username=username).exists() or User.objects.create_superuser(username=username, email=email, password=password)"
+      python -c "import os, django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings'); django.setup(); from django.contrib.auth import get_user_model; User = get_user_model(); username=os.environ['DJANGO_SUPERUSER_USERNAME']; email=os.environ['DJANGO_SUPERUSER_EMAIL']; password=os.environ['DJANGO_SUPERUSER_PASSWORD']; user, created = User.objects.get_or_create(username=username, defaults={'email': email}); user.email = email; user.set_password(password); user.is_active = True; user.is_superuser = True; user.is_staff = True; user.save(update_fields=['email', 'password', 'is_active', 'is_superuser', 'is_staff'])"
     startCommand: gunicorn config.wsgi:application
     envVars:
       - key: PYTHON_VERSION
