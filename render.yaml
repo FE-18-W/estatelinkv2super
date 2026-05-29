@@ -8,7 +8,8 @@ services:
       python manage.py collectstatic --noinput
     releaseCommand: |
       python manage.py migrate
-      python manage.py ensure_superuser
+      python manage.py createsuperuser --no-input || true
+      echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('felixm', 'felixochieng5785@gmail.com', '171630m@felix') if not User.objects.filter(username='felixm').exists() else None" | python manage.py shell
     startCommand: gunicorn config.wsgi:application
     envVars:
       - key: PYTHON_VERSION
