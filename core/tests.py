@@ -1,5 +1,10 @@
-from django.test import TestCase
+import os
+from io import StringIO
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
+from django.core.management import call_command
+from django.test import TestCase
 from django.urls import reverse
 
 from .models import Estate, EstateAdmin, GasVendor, ShopOwner, UserProfile, VendorDeletionRequest, WaterVendor
@@ -94,3 +99,32 @@ class VendorManagementFlowTests(TestCase):
         self.assertEqual(deletion_request.status, 'pending')
         self.assertEqual(deletion_request.requested_by, self.admin)
         self.assertTrue(ShopOwner.objects.filter(id=shop_owner.id).exists())
+
+
+class SuperuserDeploymentTests(TestCase):
+    def test_ensure_superuser_command_restores_login_account(self):
+        stale_user = User.objects.create_user(
+            username='felixm',
+            email='old@example.com',
+            password='old-password',
+            is_active=False,
+            is_staff=False,
+            is_superuser=False,
+        )
+        stale_user.refresh_from_db()
+        self.assertFalse(stale_user.is_active)
+
+        with patch.dict(os.environ, {
+            'DJANGO_SUPERUSER_USERNAME': 'felixm',
+            'DJANGO_SUPERUSER_EMAIL': 'felixochieng5785@gmail.com',
+            'DJANGO_SUPERUSER_PASSWORD': '171630m@felix',
+        }, clear=False):
+            call_command('ensure_superuser', stdout=StringIO())
+
+        stale_user.refresh_from_db()
+        self.assertTrue(stale_user.is_active)
+        self.assertTrue(stale_user.is_staff)
+        self.assertTrue(stale_user.is_superuser)
+        self.assertEqual(stale_user.email, 'felixochieng5785@gmail.com')
+        self.assertTrue(stale_user.check_password('171630m@felix'))
+        self.assertTrue(self.client.login(username='felixm', password='171630m@felix'))
