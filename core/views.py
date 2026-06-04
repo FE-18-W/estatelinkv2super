@@ -1043,5 +1043,8 @@ def access_denied_view(request, exception=None):
 
 
 def logout_view(request):
+    # Clear all session data
     auth_logout(request)
+    # Flush the entire session to ensure no cached data
+    request.session.flush()
     return render(request, 'core/logout.html')
