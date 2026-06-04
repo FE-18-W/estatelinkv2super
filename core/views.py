@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.contrib.auth import logout as auth_logout
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponseRedirect
@@ -1039,3 +1040,8 @@ def latest_alert_count(request):
 
 def access_denied_view(request, exception=None):
     return render(request, 'core/access_denied.html')
+
+
+def logout_view(request):
+    auth_logout(request)
+    return render(request, 'core/logout.html')

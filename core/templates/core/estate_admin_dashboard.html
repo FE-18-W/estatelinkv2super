@@ -146,7 +146,7 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><span class="card-title">⛽ Gas Vendors</span></div>
+        <div class="card-header"><span class="card-title">Gas Vendors</span></div>
         {% for v in gas_vendors %}
         <div class="detail-row" style="justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
           <span><strong>{{ v.name }}</strong>{% if v.user %} — {{ v.user.username }}{% endif %}</span>
