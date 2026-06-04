@@ -1,0 +1,472 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .dashboard-container { max-width: 1400px; margin: 0 auto; }
+  .grid-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.02) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+  .tech-header { position: relative; background: rgba(15,25,45,0.7); backdrop-filter: blur(20px); border-radius: 2rem; padding: 2rem; margin-bottom: 2rem; border: 1px solid rgba(0,255,255,0.15); box-shadow: 0 0 40px rgba(0,180,255,0.1); overflow: hidden; }
+  .pulse-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 100px; height: 100px; border-radius: 50%; border: 2px solid rgba(0,242,254,0.2); animation: pulseRing 3s ease-out infinite; pointer-events: none; }
+  .pulse-ring:nth-child(2) { animation-delay: 1s; } .pulse-ring:nth-child(3) { animation-delay: 2s; }
+  @keyframes pulseRing { 0% { width: 50px; height: 50px; opacity: 0.5; } 100% { width: 300px; height: 300px; opacity: 0; } }
+  .tech-header h1 { font-size: 2.2rem; font-weight: 800; color: #00f2fe; text-shadow: 0 0 15px rgba(0,242,254,0.6); position: relative; z-index: 1; margin: 0; }
+  .estate-badge { display: inline-flex; align-items: center; background: rgba(0,255,200,0.1); border: 1px solid rgba(0,255,200,0.3); border-radius: 999px; padding: 0.3rem 1.2rem; color: #b3ffe0; font-size: 0.9rem; backdrop-filter: blur(10px); margin-top: 0.5rem; position: relative; z-index: 1; }
+  .estate-badge svg { width: 16px; height: 16px; margin-right: 6px; fill: #00ffc8; }
+  .header-subtitle { color: #6b7b8f; margin-top: 0.4rem; position: relative; z-index: 1; font-size: 0.85rem; }
+  .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; position: relative; z-index: 1; }
+  .tech-card { background: rgba(18,28,46,0.8); backdrop-filter: blur(15px); border-radius: 1.5rem; padding: 1.5rem; border: 1px solid rgba(0,255,255,0.1); transition: all 0.3s ease; position: relative; overflow: hidden; text-decoration: none; color: inherit; display: block; }
+  .tech-card:hover { transform: translateY(-5px); border-color: rgba(0,255,255,0.4); box-shadow: 0 0 30px rgba(0,180,255,0.2); }
+  .tech-card .icon-wrapper { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+  .glow-water .icon-wrapper { box-shadow: 0 0 20px rgba(0,180,255,0.4); } .glow-garbage .icon-wrapper { box-shadow: 0 0 20px rgba(0,255,150,0.4); }
+  .glow-fundi .icon-wrapper { box-shadow: 0 0 20px rgba(255,140,0,0.4); } .glow-security .icon-wrapper { box-shadow: 0 0 20px rgba(255,70,70,0.4); }
+  .glow-lost .icon-wrapper { box-shadow: 0 0 20px rgba(180,70,255,0.4); } .glow-jobs .icon-wrapper { box-shadow: 0 0 20px rgba(80,120,255,0.4); }
+  .glow-market .icon-wrapper { box-shadow: 0 0 20px rgba(255,50,150,0.4); } .glow-bills .icon-wrapper { box-shadow: 0 0 20px rgba(0,210,210,0.4); }
+  .tech-card h3 { font-weight: 600; color: #e0f0ff; margin: 0; } .tech-card p { color: #8899aa; font-size: 0.85rem; margin-top: 0.3rem; } .tech-card .highlight { color: #00f2fe; font-weight: 500; }
+  .notif-panel { background: rgba(18,28,46,0.8); backdrop-filter: blur(20px); border-radius: 1.5rem; padding: 1.5rem; border: 1px solid rgba(0,255,255,0.1); position: relative; z-index: 1; margin-bottom: 2rem; }
+  .notif-panel h2 { display: flex; align-items: center; color: #e0f0ff; font-weight: 600; margin-bottom: 1rem; }
+  .pulse-dot { width: 10px; height: 10px; background: #ff3b3b; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 10px #ff3b3b; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.6; } 50% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.6; } }
+  .alert-item { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); } .alert-item:last-child { border-bottom: none; }
+  .alert-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .alert-icon svg { width: 18px; height: 18px; } .alert-text .title { color: #e0f0ff; font-weight: 500; } .alert-text .desc { color: #7f8ea3; font-size: 0.8rem; margin-top: 2px; }
+  .custom-tabs-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; position: relative; z-index: 1; }
+  .custom-tab { padding: 0.4rem 1.2rem; border-radius: 999px; font-size: 0.85rem; font-weight: 500; text-decoration: none; transition: all 0.2s; background: rgba(255,255,255,0.05); border: 1px solid #00f2fe; color: #00f2fe; }
+  .custom-tab:hover { background: rgba(0,242,254,0.15); }
+
+  /* Notification type styles */
+  .notif-broadcast { border-left: 3px solid #3b82f6 !important; padding-left: 0.8rem !important; }
+  .notif-general { border-left: 3px solid #10b981 !important; padding-left: 0.8rem !important; }
+  .icon-broadcast { background: rgba(59,130,246,0.15) !important; }
+  .icon-general { background: rgba(16,185,129,0.15) !important; }
+  .icon-alert { background: rgba(255,60,60,0.15) !important; }
+
+  .section-banner { border-radius: 1.5rem; padding: 1.5rem 2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .section-banner h2 { font-size: 1.3rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+  .admin-banner { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); } .admin-banner h2 { color: #ffa040; }
+  .vendor-banner { background: rgba(14,165,233,0.12); border: 1px solid rgba(56,189,248,0.25); } .vendor-banner h2 { color: #38bdf8; }
+  .banner-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; animation: pulse 2s infinite; }
+  .banner-dot-orange { background: #ffa040; } .banner-dot-blue { background: #38bdf8; }
+  .banner-subtitle { font-size: 0.85rem; margin: 0.2rem 0 0; } .admin-subtitle { color: #b0c7e0; } .vendor-subtitle { color: #b0c7e0; }
+  .quick-links { display: flex; gap: 0.6rem; }
+  .quick-link { padding: 0.5rem 1.1rem; border-radius: 0.6rem; font-weight: 600; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: 0.2s; }
+  .ql-orange { background: rgba(249,115,22,0.2); border: 1px solid rgba(249,115,22,0.4); color: #ffa040; }
+  .ql-blue { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); color: #60a5fa; position: relative; }
+  .ql-badge { position: absolute; top: -7px; right: -7px; background: #ff3d3d; color: white; font-size: 0.6rem; padding: 0.1rem 0.45rem; border-radius: 999px; }
+  .section-tabs { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .section-tab { padding: 0.45rem 1.1rem; border-radius: 0.6rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; color: #6b7280; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
+  .section-tab.active, .section-tab:hover { color: #ffa040; background: rgba(249,115,22,0.1); border-color: #f97316; }
+  .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
+  .panel { background: rgba(18,28,46,0.8); backdrop-filter: blur(20px); border-radius: 1.3rem; padding: 1.4rem; border: 1px solid rgba(255,255,255,0.05); }
+  .panel h3 { font-weight: 700; margin-bottom: 1rem; font-size: 0.95rem; }
+  .panel-orange { border: 1px solid rgba(249,115,22,0.15); } .panel-orange h3 { color: #ffa040; }
+  .panel-red { border: 1px solid rgba(255,70,70,0.15); } .panel-red h3 { color: #ff6b6b; }
+  .mini-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 0.7rem; padding: 0.8rem; margin-bottom: 0.4rem; }
+  .mini-card-header { display: flex; justify-content: space-between; align-items: center; }
+  .mini-card-title { font-weight: 700; color: #e0f0ff; font-size: 0.85rem; }
+  .badge { padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.68rem; font-weight: 700; }
+  .badge-green { background: rgba(16,185,129,0.2); color: #34d399; } .badge-yellow { background: rgba(251,191,36,0.2); color: #fbbf24; }
+  .badge-blue { background: rgba(56,189,248,0.2); color: #38bdf8; }
+  .btn { padding: 0.3rem 0.8rem; border-radius: 0.4rem; font-size: 0.72rem; font-weight: 700; cursor: pointer; text-decoration: none; border: none; display: inline-block; transition: 0.2s; color: white; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-green { background: #10b981; } .btn-red { background: #ef4444; } .btn-orange { background: #f97316; } .btn-blue { background: #3b82f6; }
+  .detail-row { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.78rem; color: #9ca3af; margin-top: 0.2rem; } .detail-row strong { color: #e0f0ff; }
+  .actions { display: flex; gap: 0.3rem; margin-top: 0.4rem; }
+  .empty-text { text-align: center; color: #6b7280; padding: 1rem; font-size: 0.82rem; }
+  .quick-form { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: flex-end; margin-top: 0.6rem; }
+  .quick-form input, .quick-form select, .quick-form textarea { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.4rem; padding: 0.4rem 0.5rem; color: white; outline: none; font-size: 0.75rem; }
+  .quick-form input:focus, .quick-form select:focus, .quick-form textarea:focus { border-color: #38bdf8; }
+  .vendor-order-card { background: rgba(18,28,46,0.8); border-radius: 0.9rem; padding: 0.9rem; margin-bottom: 0.5rem; }
+  .vendor-order-card.pending { border-left: 4px solid #fbbf24; border: 1px solid rgba(251,191,36,0.15); }
+  .vendor-order-card.active { border-left: 4px solid #38bdf8; border: 1px solid rgba(56,189,248,0.15); }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.6rem; margin-bottom: 1rem; }
+  .stat-card { background: rgba(18,28,46,0.8); border-radius: 0.8rem; padding: 0.8rem; text-align: center; }
+  .stat-number { font-size: 1.4rem; font-weight: 800; } .stat-number.pending { color: #fbbf24; } .stat-number.active { color: #38bdf8; }
+  .stat-label { color: #6b7280; font-size: 0.7rem; }
+</style>
+
+<canvas id="waveCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
+<script>
+  (function() {
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, time = 0;
+    function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+    const particles = [];
+    for (let i = 0; i < 100; i++) {
+      particles.push({ angle: Math.random()*Math.PI*2, radius: 50+Math.random()*350, speed: 0.003+Math.random()*0.012, size: 1.5+Math.random()*2.5, opacity: 0.1+Math.random()*0.25, color: Math.random()<0.5?'0,240,255':'0,144,255', spiralSpeed: 0.0005+Math.random()*0.002, yOffset: Math.random()*h });
+    }
+    function draw() {
+      ctx.clearRect(0,0,w,h); time += 0.016;
+      for (let j=0; j<2; j++) {
+        const sx=w*(0.35+j*0.25), sy=h*0.6;
+        ctx.beginPath(); ctx.strokeStyle=`rgba(0,${200+j*20},255,${0.03-j*0.01})`; ctx.lineWidth=2;
+        for (let i=0; i<1500; i++) {
+          const t=i/150, angle=t*Math.PI*5+time*0.4+j, radius=t*450;
+          const x=sx+Math.cos(angle)*radius, y=sy+Math.sin(angle)*radius*0.35+Math.sin(time*0.7+j)*25;
+          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      }
+      for (let p of particles) {
+        p.angle += p.spiralSpeed; p.radius += p.speed*0.4;
+        if(p.radius>450) p.radius=50;
+        const cx=w*0.4, cy=h*0.55+Math.sin(time*0.5+p.yOffset*0.01)*35;
+        const x=cx+Math.cos(p.angle)*p.radius, y=cy+Math.sin(p.angle)*p.radius*0.35;
+        ctx.beginPath(); ctx.arc(x,y,p.size,0,Math.PI*2); ctx.fillStyle=`rgba(${p.color},${p.opacity})`; ctx.fill();
+        ctx.beginPath(); ctx.arc(x,y,p.size*3,0,Math.PI*2); ctx.fillStyle=`rgba(${p.color},${p.opacity*0.12})`; ctx.fill();
+      }
+      ctx.beginPath(); ctx.moveTo(0,h);
+      for (let x=0; x<w; x+=3) { const y=h-50+Math.sin(x*0.008+time*1.5)*20+Math.sin(x*0.02+time*2.5)*12+Math.sin(x*0.005+time*0.8)*16; ctx.lineTo(x,y); }
+      ctx.lineTo(w,h); ctx.closePath(); ctx.fillStyle='rgba(0,200,255,0.04)'; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0,h);
+      for (let x=0; x<w; x+=3) { const y=h-35+Math.sin(x*0.01+time*1.2+1)*16+Math.sin(x*0.025+time*2.8+0.5)*10; ctx.lineTo(x,y); }
+      ctx.lineTo(w,h); ctx.closePath(); ctx.fillStyle='rgba(0,180,255,0.05)'; ctx.fill();
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+</script>
+<div class="grid-bg"></div>
+
+<div class="dashboard-container" style="position: relative; z-index: 1; padding: 1rem;">
+    <div class="tech-header">
+        <div class="pulse-ring"></div><div class="pulse-ring"></div><div class="pulse-ring"></div>
+        <h1>Hello, {{ user.username }}</h1>
+        <div class="estate-badge"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>{{ user.userprofile.estate.name }}</div>
+        <p class="header-subtitle">Connected. Secure. Convenient.</p>
+    </div>
+
+    {% if custom_tabs %}<div class="custom-tabs-row">{% for tab in custom_tabs %}<a href="{{ tab.url }}" class="custom-tab">{{ tab.name }}</a>{% endfor %}</div>{% endif %}
+
+    <div class="service-grid">
+        <a href="{% url 'water' %}" class="tech-card glow-water"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00b4ff" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div><h3>Water Delivery</h3>{% if water_order %}<p>Driver: {{ water_order.driver_name }} <span class="highlight">- ETA {{ water_order.eta_minutes }}m</span></p>{% else %}<p>No active order</p>{% endif %}</a>
+        <a href="{% url 'shop_gas' %}" class="tech-card glow-garbage"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff96" stroke-width="2"><path d="M6 4h12v4H6V4zm0 6h12v10H6V10z"/><path d="M8 14h8"/><path d="M8 18h8"/></svg></div><h3>Shop & Gas</h3><p>Order gas or shop goods for delivery</p></a>
+        <a href="{% url 'garbage' %}" class="tech-card glow-garbage"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff96" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><h3>Garbage</h3>{% if garbage %}<p>{{ garbage.collection_day }} at {{ garbage.time|time:"H:i" }}</p>{% else %}<p>Check schedule</p>{% endif %}</a>
+        <a href="{% url 'fundi' %}" class="tech-card glow-fundi"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg></div><h3>Fundis and Help</h3><p>Plumbers, electricians, cleaners</p></a>
+        <a href="{% url 'security' %}" class="tech-card glow-security"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff4646" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Security</h3><p>Alerts and incident reporting</p></a>
+        <a href="{% url 'lost_found' %}" class="tech-card glow-lost"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b446ff" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><h3>Lost and Found</h3><p>Help your neighbours</p></a>
+        <a href="{% url 'jobs' %}" class="tech-card glow-jobs"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5078ff" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><h3>Estate Job</h3>{% if gigs %}<p>{{ gigs.0.title }} <span class="highlight">and more</span></p>{% else %}<p>Find work within your estate</p>{% endif %}</a>
+        <a href="{% url 'marketplace' %}" class="tech-card glow-market"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff3296" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div><h3>Marketplace</h3>{% if items %}<p>{{ items.0.title }} - KSh {{ items.0.price }}</p>{% else %}<p>Buy and sell locally</p>{% endif %}</a>
+        <a href="{% url 'bills' %}" class="tech-card glow-bills"><div class="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d2d2" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><h3>Rent and Bills</h3>{% if bills %}<p class="highlight">{{ bills.0.title }} due soon</p>{% else %}<p>All paid up!</p>{% endif %}</a>
+    </div>
+
+    <div class="notif-panel">
+        <h2><span class="pulse-dot"></span>Live Alerts</h2>
+        {% if alerts or recent_notifications %}
+            {% for alert in alerts %}
+            <div class="alert-item">
+                <div class="alert-icon icon-alert"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#ff5555"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+                <div class="alert-text"><div class="title">{{ alert.title }}</div><div class="desc">{{ alert.description|truncatechars:80 }}</div></div>
+            </div>
+            {% endfor %}
+            {% for notification in recent_notifications %}
+            <div class="alert-item {% if notification.notification_type == 'broadcast' or notification.notification_type == 'broadcast_sent' %}notif-broadcast{% else %}notif-general{% endif %}">
+                <div class="alert-icon {% if notification.notification_type == 'broadcast' or notification.notification_type == 'broadcast_sent' %}icon-broadcast{% else %}icon-general{% endif %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="{% if notification.notification_type == 'broadcast' or notification.notification_type == 'broadcast_sent' %}#60a5fa{% else %}#34d399{% endif %}">
+                        {% if notification.notification_type == 'broadcast' or notification.notification_type == 'broadcast_sent' %}
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        {% else %}
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                        {% endif %}
+                    </svg>
+                </div>
+                <div class="alert-text">
+                    <div class="title">{{ notification.title }}</div>
+                    <div class="desc">{{ notification.message|truncatechars:80 }}</div>
+                    <div style="font-size:0.7rem;color:#6b7280;margin-top:2px;">{{ notification.created_at|date:"M d, H:i" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#7f8ea3;">System nominal. No alerts.</p>
+        {% endif %}
+    </div>
+
+    {% if is_vendor %}
+    <div style="position: relative; z-index: 1; margin-top: 2rem;">
+        <div class="section-banner vendor-banner">
+            <div><h2><span class="banner-dot banner-dot-blue"></span>{{ vendor.name }} -- Vendor Panel</h2><p class="banner-subtitle vendor-subtitle">Manage your water orders</p></div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-number pending">{{ vendor_pending_orders.count }}</div><div class="stat-label">Pending</div></div>
+            <div class="stat-card"><div class="stat-number active">{{ vendor_active_orders.count }}</div><div class="stat-label">Active</div></div>
+        </div>
+        <h3 style="color:#fbbf24;font-weight:600;margin-bottom:0.8rem;font-size:1rem;">Pending Orders</h3>
+        {% for order in vendor_pending_orders %}
+        <div class="vendor-order-card pending">
+            <p style="color:#e0f0ff;font-weight:600;margin:0;">{{ order.customer.username }} -- {{ order.litres }}L - KSh {{ order.price }}</p>
+            <p style="color:#6b7280;font-size:0.75rem;">{{ order.created_at|date:"M d, H:i" }}</p>
+            <form method="post" action="{% url 'vendor_respond_water' order.id %}" class="quick-form">
+                {% csrf_token %}
+                <input type="text" name="driver_name" placeholder="Driver"><input type="number" name="eta_minutes" placeholder="ETA min">
+                <textarea name="response_message" placeholder="Reason (required)..." rows="1" required></textarea>
+                <button type="submit" name="action" value="accept" class="btn btn-green">Accept</button>
+                <button type="submit" name="action" value="decline" class="btn btn-red">Decline</button>
+            </form>
+        </div>
+        {% empty %}<p class="empty-text">No pending orders.</p>{% endfor %}
+        <h3 style="color:#38bdf8;font-weight:600;margin:1.2rem 0 0.8rem;font-size:1rem;">Active Orders</h3>
+        {% for order in vendor_active_orders %}
+        <div class="vendor-order-card active">
+            <p style="color:#e0f0ff;font-weight:600;margin:0;">{{ order.customer.username }} -- {{ order.litres }}L - KSh {{ order.price }} <span class="badge badge-blue">{{ order.status }}</span></p>
+            {% if order.driver_name %}<p style="color:#a0aec0;font-size:0.75rem;">Driver: {{ order.driver_name }}{% if order.eta_minutes %} - ETA: {{ order.eta_minutes }} min{% endif %}</p>{% endif %}
+            {% if order.vendor_response %}<p style="color:#a0aec0;font-size:0.78rem;font-style:italic;">"{{ order.vendor_response }}"</p>{% endif %}
+            <div class="actions">
+                {% if order.status == 'Accepted' %}<form method="post" action="{% url 'vendor_respond_water' order.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="on_the_way" class="btn btn-blue">On The Way</button></form>{% endif %}
+                {% if order.status == 'On The Way' %}<form method="post" action="{% url 'vendor_respond_water' order.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="delivered" class="btn btn-green">Delivered</button></form>{% endif %}
+            </div>
+        </div>
+        {% empty %}<p class="empty-text">No active orders.</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if is_gas_vendor %}
+    <div style="position: relative; z-index: 1; margin-top: 2rem;">
+        <div class="section-banner vendor-banner">
+            <div><h2><span class="banner-dot banner-dot-blue"></span>{{ gas_vendor.name }} -- Gas Vendor Panel</h2><p class="banner-subtitle vendor-subtitle">Manage your gas refill orders</p></div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-number pending">{{ gas_vendor_pending_orders.count }}</div><div class="stat-label">Pending</div></div>
+            <div class="stat-card"><div class="stat-number active">{{ gas_vendor_active_orders.count }}</div><div class="stat-label">Active</div></div>
+        </div>
+        {% for order in gas_vendor_pending_orders %}
+        <div class="vendor-order-card pending">
+            <p style="color:#e0f0ff;font-weight:600;margin:0;">{{ order.customer.username }} -- {{ order.kgs }}kg - KSh {{ order.price }}</p>
+            <p style="color:#6b7280;font-size:0.75rem;">Deliver to {{ order.block_name }} {{ order.house_number }}</p>
+            <form method="post" action="{% url 'shop_gas_respond' 'gas' order.id %}" class="quick-form">
+                {% csrf_token %}
+                <textarea name="response_message" placeholder="Reason (required)..." rows="1" required></textarea>
+                <button type="submit" name="action" value="accept" class="btn btn-green">Accept</button>
+                <button type="submit" name="action" value="decline" class="btn btn-red">Decline</button>
+            </form>
+        </div>
+        {% empty %}<p class="empty-text">No pending gas orders.</p>{% endfor %}
+        <h3 style="color:#38bdf8;font-weight:600;margin:1.2rem 0 0.8rem;font-size:1rem;">Active Gas Orders</h3>
+        {% for order in gas_vendor_active_orders %}
+        <div class="vendor-order-card active">
+            <p style="color:#e0f0ff;font-weight:600;margin:0;">{{ order.customer.username }} -- {{ order.kgs }}kg - KSh {{ order.price }} <span class="badge badge-blue">{{ order.status }}</span></p>
+            <p style="color:#a0aec0;font-size:0.75rem;">Deliver to {{ order.block_name }} {{ order.house_number }}</p>
+            {% if order.vendor_response %}<p style="color:#a0aec0;font-size:0.78rem;font-style:italic;">"{{ order.vendor_response }}"</p>{% endif %}
+            <div class="actions">
+                {% if order.status == 'Accepted' %}
+                <form method="post" action="{% url 'shop_gas_respond' 'gas' order.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="on_the_way" class="btn btn-blue">On The Way</button></form>
+                {% endif %}
+                {% if order.status == 'On The Way' %}
+                <form method="post" action="{% url 'shop_gas_respond' 'gas' order.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="delivered" class="btn btn-green">Delivered</button></form>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}<p class="empty-text">No active gas orders.</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if is_shop_owner %}
+    <div style="position: relative; z-index: 1; margin-top: 2rem;">
+        <div class="section-banner vendor-banner">
+            <div><h2><span class="banner-dot banner-dot-blue"></span>{{ shop_owner.name }} -- Shop Owner Panel</h2><p class="banner-subtitle vendor-subtitle">Manage your shop orders</p></div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-number pending">{{ shop_owner_pending_orders.count }}</div><div class="stat-label">Pending</div></div>
+            <div class="stat-card"><div class="stat-number active">{{ shop_owner_active_orders.count }}</div><div class="stat-label">Active</div></div>
+        </div>
+        {% for order in shop_owner_pending_orders %}
+        <div class="vendor-order-card pending">
+            <p style="color:#e0f0ff;font-weight:600;margin:0;">{{ order.customer.username }} -- {{ order.quantity }} x {{ order.item_name }} - KSh {{ order.price }}</p>
+            <p style="color:#6b7280;font-size:0.75rem;">{{ order.description|truncatechars:80 }}</p>
+            <form method="post" action="{% url 'shop_gas_respond' 'shop' order.id %}" class="quick-form">
+                {% csrf_token %}
+                <textarea name="response_message" placeholder="Reason (required)..." rows="1" required></textarea>
+                <button type="submit" name="action" value="accept" class="btn btn-green">Accept</button>
+                <button type="submit" name="action" value="decline" class="btn btn-red">Decline</button>
+            </form>
+        </div>
+        {% empty %}<p class="empty-text">No pending shop orders.</p>{% endfor %}
+        <h3 style="color:#38bdf8;font-weight:600;margin:1.2rem 0 0.8rem;font-size:1rem;">Active Shop Orders</h3>
+        {% for order in shop_owner_active_orders %}
+        <div class="vendor-order-card active">
+            <p style="color:#e0f0ff;font-weight:600;margin:0;">{{ order.customer.username }} -- {{ order.quantity }} x {{ order.item_name }} - KSh {{ order.price }} <span class="badge badge-blue">{{ order.status }}</span></p>
+            <p style="color:#a0aec0;font-size:0.75rem;">{{ order.description|truncatechars:80 }}</p>
+            {% if order.owner_response %}<p style="color:#a0aec0;font-size:0.78rem;font-style:italic;">"{{ order.owner_response }}"</p>{% endif %}
+            <div class="actions">
+                {% if order.status == 'Accepted' %}
+                <form method="post" action="{% url 'shop_gas_respond' 'shop' order.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="on_the_way" class="btn btn-blue">On The Way</button></form>
+                {% endif %}
+                {% if order.status == 'On The Way' %}
+                <form method="post" action="{% url 'shop_gas_respond' 'shop' order.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="delivered" class="btn btn-green">Delivered</button></form>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}<p class="empty-text">No active shop orders.</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if is_estate_admin %}
+    <div style="position: relative; z-index: 1; margin-top: 2rem;">
+        <div class="section-banner admin-banner">
+            <div><h2><span class="banner-dot banner-dot-orange"></span>Admin Command Center</h2><p class="banner-subtitle admin-subtitle">Managing: {{ estate_admin.estate.name }}</p></div>
+            <div class="quick-links">
+                <a href="?tab=requests" class="quick-link ql-orange"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg>Requests</a>
+                <a href="{% url 'notifications' %}" class="quick-link ql-blue">Notifications {% if unread_notifications > 0 %}<span class="ql-badge">{{ unread_notifications }}</span>{% endif %}</a>
+            </div>
+        </div>
+        <div class="section-tabs">
+            <a href="?tab=overview" class="section-tab {% if tab == 'overview' %}active{% endif %}">Overview</a>
+            {% if estate_admin.can_manage_users %}<a href="?tab=users" class="section-tab {% if tab == 'users' %}active{% endif %}">Users</a>{% endif %}
+            {% if estate_admin.can_manage_requests %}<a href="?tab=requests" class="section-tab {% if tab == 'requests' %}active{% endif %}">Requests</a>{% endif %}
+            {% if estate_admin.can_manage_alerts %}<a href="?tab=alerts" class="section-tab {% if tab == 'alerts' %}active{% endif %}">Alerts</a>{% endif %}
+            {% if estate_admin.can_manage_services %}<a href="?tab=services" class="section-tab {% if tab == 'services' %}active{% endif %}">Services</a>{% endif %}
+            {% if estate_admin.can_manage_bills %}<a href="?tab=bills" class="section-tab {% if tab == 'bills' %}active{% endif %}">Bills</a>{% endif %}
+            {% if estate_admin.can_view_analytics %}<a href="?tab=analytics" class="section-tab {% if tab == 'analytics' %}active{% endif %}">Analytics</a>{% endif %}
+            {% if estate_admin.can_broadcast %}<a href="?tab=broadcast" class="section-tab {% if tab == 'broadcast' %}active{% endif %}">Broadcast</a>{% endif %}
+        </div>
+
+        {% if tab == 'overview' %}
+        <div class="panel-grid">
+            <div class="panel panel-orange"><h3>Pending Fundi Requests</h3>{% for req in fundi_requests %}<div class="mini-card"><p style="color:#ffb347;font-weight:700;margin:0;font-size:0.85rem;">{{ req.fundi_type }}</p><p style="color:#a0aec0;font-size:0.78rem;">From: {{ req.requester_name }}</p><a href="{% url 'admin_respond' req.id %}" class="btn btn-orange">Respond</a></div>{% empty %}<p class="empty-text">No pending requests.</p>{% endfor %}</div>
+            <div class="panel panel-red"><h3>Recent Alerts</h3>{% for alert in all_alerts %}<div class="mini-card"><p style="color:#ffaaaa;font-weight:600;margin:0;font-size:0.82rem;">{{ alert.title }}</p><p style="color:#a0aec0;font-size:0.75rem;">{{ alert.description|truncatechars:100 }}</p></div>{% empty %}<p class="empty-text">No alerts.</p>{% endfor %}</div>
+        </div>
+        {% endif %}
+
+        {% if tab == 'users' and estate_admin.can_manage_users %}
+        <div class="panel panel-orange"><h3>Residents ({{ total_users }})</h3>{% for user in estate_users %}<div class="mini-card"><div class="mini-card-header"><span class="mini-card-title">{{ user.username }}</span><span class="badge {% if user.is_active %}badge-green{% else %}badge-yellow{% endif %}">{% if user.is_active %}Active{% else %}Pending{% endif %}</span></div><div class="detail-row"><span>Email: <strong>{{ user.email|default:"--" }}</strong></span><span>Phone: <strong>{{ user.userprofile.phone|default:"--" }}</strong></span></div><div class="actions">{% if not user.is_active %}<a href="{% url 'admin_approve_resident' user.id %}" class="btn btn-green">Approve</a>{% endif %}<a href="{% url 'admin_remove_resident' user.id %}" class="btn btn-red" onclick="return confirm('Remove?')">Remove</a></div></div>{% empty %}<p class="empty-text">No users found.</p>{% endfor %}</div>
+        {% endif %}
+
+        {% if tab == 'requests' and estate_admin.can_manage_requests %}
+        <div class="panel panel-orange"><h3>Fundi Requests</h3>{% for req in fundi_requests %}<div class="mini-card"><div class="mini-card-header"><span class="mini-card-title">{{ req.fundi_type }}</span><span class="badge badge-yellow">{{ req.get_status_display }}</span></div><p style="color:#a0aec0;font-size:0.78rem;">From: {{ req.requester_name }} - {{ req.description|truncatechars:100 }}</p><div class="actions"><a href="{% url 'admin_respond' req.id %}" class="btn btn-orange">Respond</a></div></div>{% empty %}<p class="empty-text">No requests.</p>{% endfor %}</div>
+        {% endif %}
+
+        {% if tab == 'alerts' and estate_admin.can_manage_alerts %}
+        <div class="panel panel-red">
+            <h3>Post New Alert</h3>
+            <form method="post" class="quick-form" style="flex-direction:column;align-items:stretch;">
+                {% csrf_token %}<input type="hidden" name="post_alert" value="1">
+                <input type="text" name="title" placeholder="Alert title" required style="width:100%;margin-bottom:0.5rem;">
+                <textarea name="description" rows="3" placeholder="Alert description..." required style="width:100%;margin-bottom:0.8rem;resize:vertical;min-height:80px;"></textarea>
+                <button type="submit" class="btn btn-red" style="align-self:flex-end;padding:0.5rem 1.5rem;font-size:0.85rem;">Post Alert</button>
+            </form>
+            <h3 style="margin-top:1.5rem;">Recent Alerts</h3>
+            {% for alert in all_alerts %}<div class="mini-card" style="border-left:3px solid #ef4444;"><div class="mini-card-header"><span class="mini-card-title">{{ alert.title }}</span></div><p style="color:#a0aec0;font-size:0.78rem;">{{ alert.description }}</p><div class="actions"><a href="{% url 'admin_resolve_alert' alert.id %}" class="btn btn-green" onclick="return confirm('Resolve?')">Resolve</a></div></div>{% empty %}<p class="empty-text">No alerts.</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        {% if tab == 'services' and estate_admin.can_manage_services %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="panel panel-orange">
+                <h3>Water Vendors</h3>
+                {% for v in water_vendors %}
+                <div class="mini-card" style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                    <div>
+                        <p style="color:#e0f0ff;font-size:0.82rem;margin:0;"><strong>{{ v.name }}</strong>{% if v.user %} — {{ v.user.username }}{% endif %}</p>
+                        <p style="color:#a0aec0;font-size:0.72rem;margin:0.25rem 0 0;">Rating: {{ v.rating }}</p>
+                    </div>
+                    <a href="{% url 'request_vendor_deletion' 'water' v.id %}" class="btn btn-red" style="font-size:0.7rem;padding:0.3rem 0.6rem;">🗑️ Delete</a>
+                </div>
+                {% empty %}<p class="empty-text">No vendors.</p>{% endfor %}
+                <form method="post" action="{% url 'admin_add_water_vendor' %}" class="quick-form">{% csrf_token %}<input type="text" name="name" placeholder="Vendor name" required><input type="text" name="username" placeholder="Assign username (optional)"><button type="submit" class="btn btn-orange">Add Water Vendor</button></form>
+                {% if pending_vendor_deletions %}
+                <div class="mini-card" style="margin-top:0.8rem;">
+                    <p style="color:#fbbf24;font-weight:700;font-size:0.78rem;margin:0;">Pending deletion approvals</p>
+                    {% for deletion in pending_vendor_deletions|slice:':3' %}
+                    <p style="color:#a0aec0;font-size:0.72rem;margin:0.4rem 0 0;"><strong>{{ deletion.vendor_name }}</strong> requested by {{ deletion.requested_by.username }} for {{ deletion.estate.name }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="panel panel-orange"><h3>Garbage Schedule</h3>{% for s in garbage_schedules %}<p style="color:#e0f0ff;font-size:0.82rem;"><strong>{{ s.collection_day }}</strong> - {{ s.time|time:"H:i" }}</p>{% empty %}<p class="empty-text">No schedule.</p>{% endfor %}<form method="post" action="{% url 'admin_add_garbage_schedule' %}" class="quick-form">{% csrf_token %}<select name="day" required><option value="">Day</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select><input type="time" name="time" required><button type="submit" class="btn btn-orange">Add</button></form></div>
+        </div>
+        <div class="panel panel-orange" style="margin-top:1rem;">
+            <h3>Shop & Gas Providers</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div>
+                    <h4 style="margin-top:0;">Gas Vendors</h4>
+                    {% for gv in gas_vendors %}
+                    <div class="mini-card" style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <p style="color:#e0f0ff;font-size:0.82rem;margin:0;"><strong>{{ gv.name }}</strong>{% if gv.user %} - {{ gv.user.username }}{% endif %}</p>
+                        <a href="{% url 'request_vendor_deletion' 'gas' gv.id %}" class="btn btn-red" style="font-size:0.7rem;padding:0.3rem 0.6rem;">🗑️ Delete</a>
+                    </div>
+                    {% empty %}<p class="empty-text">No gas vendors.</p>{% endfor %}
+                    <form method="post" action="{% url 'admin_add_gas_vendor' %}" class="quick-form" style="margin-top:0.8rem;">
+                        {% csrf_token %}
+                        <input type="text" name="name" placeholder="Gas vendor business name" required>
+                        <input type="text" name="username" placeholder="Assign username (optional)">
+                        <button type="submit" class="btn btn-orange">Add Gas Vendor</button>
+                    </form>
+                </div>
+                <div>
+                    <h4 style="margin-top:0;">Shop Owners</h4>
+                    {% for so in shop_owners %}
+                    <div class="mini-card" style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <p style="color:#e0f0ff;font-size:0.82rem;margin:0;"><strong>{{ so.name }}</strong>{% if so.user %} - {{ so.user.username }}{% endif %}</p>
+                        <a href="{% url 'request_vendor_deletion' 'shop' so.id %}" class="btn btn-red" style="font-size:0.7rem;padding:0.3rem 0.6rem;">🗑️ Delete</a>
+                    </div>
+                    {% empty %}<p class="empty-text">No shop owners.</p>{% endfor %}
+                    <form method="post" action="{% url 'admin_add_shop_owner' %}" class="quick-form" style="margin-top:0.8rem;">
+                        {% csrf_token %}
+                        <input type="text" name="name" placeholder="Shop owner business name" required>
+                        <input type="text" name="username" placeholder="Assign username (optional)">
+                        <button type="submit" class="btn btn-orange">Add Shop Owner</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-orange" style="margin-top:1rem;">
+            <h3>Promote Resident to Vendor</h3>
+            <form method="post" action="{% url 'admin_promote_vendor' %}" class="quick-form">
+                {% csrf_token %}<input type="text" name="username" placeholder="Resident username" required><input type="text" name="vendor_name" placeholder="Vendor business name" required>
+                <button type="submit" class="btn btn-orange">Promote to Vendor</button>
+            </form>
+            <p style="color:#6b7280;font-size:0.7rem;margin-top:0.5rem;">Superuser will be notified. The user must log out and back in to see the Vendor Panel.</p>
+        </div>
+        {% endif %}
+
+        {% if tab == 'bills' and estate_admin.can_manage_bills %}
+        <div class="panel panel-orange"><h3>Add Bill / Pending Confirmations</h3>{% for b in pending_bills %}<div class="mini-card"><p style="color:#e0f0ff;font-size:0.82rem;"><strong>{{ b.user.username }}</strong> - {{ b.title }} - KSh {{ b.amount }}</p><div class="actions"><a href="{% url 'admin_confirm_bill' b.id %}" class="btn btn-green">Confirm</a><a href="{% url 'admin_delete_bill' b.id %}" class="btn btn-red">Delete</a></div></div>{% empty %}<p class="empty-text">No pending confirmations.</p>{% endfor %}<form method="post" action="{% url 'admin_add_bill' %}" class="quick-form" style="margin-top:0.8rem;">{% csrf_token %}<input type="text" name="username" placeholder="Username" required><input type="text" name="title" placeholder="Title" required><input type="number" name="amount" placeholder="KSh" required><input type="date" name="due_date" required><button type="submit" class="btn btn-orange">Add Bill</button></form></div>
+        {% endif %}
+
+        {% if tab == 'analytics' and estate_admin.can_view_analytics and analytics %}
+        <div class="panel-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            <div class="panel panel-orange"><h3>Residents</h3><div class="detail-row"><span>Total: <strong>{{ analytics.total_users }}</strong></span></div><div class="detail-row"><span>Active: <strong>{{ analytics.active_users }}</strong></span></div><div class="detail-row"><span>Pending: <strong>{{ analytics.pending_users }}</strong></span></div></div>
+            <div class="panel panel-orange"><h3>Fundi Requests</h3><div class="detail-row"><span>Total: <strong>{{ analytics.fundi_requests_total }}</strong></span></div><div class="detail-row"><span>Pending: <strong>{{ analytics.fundi_requests_pending }}</strong></span></div><div class="detail-row"><span>Accepted: <strong>{{ analytics.fundi_requests_accepted }}</strong></span></div><div class="detail-row"><span>Completed: <strong>{{ analytics.fundi_requests_completed }}</strong></span></div><div class="detail-row"><span>Cancelled: <strong>{{ analytics.fundi_requests_cancelled }}</strong></span></div></div>
+            <div class="panel panel-orange"><h3>Water Orders</h3><div class="detail-row"><span>Total: <strong>{{ analytics.water_orders_total }}</strong></span></div><div class="detail-row"><span>Pending: <strong>{{ analytics.water_orders_pending }}</strong></span></div><div class="detail-row"><span>Accepted: <strong>{{ analytics.water_orders_accepted }}</strong></span></div><div class="detail-row"><span>On The Way: <strong>{{ analytics.water_orders_ontheway }}</strong></span></div><div class="detail-row"><span>Delivered: <strong>{{ analytics.water_orders_delivered }}</strong></span></div><div class="detail-row"><span>Declined: <strong>{{ analytics.water_orders_declined }}</strong></span></div></div>
+            <div class="panel panel-orange"><h3>Bills</h3><div class="detail-row"><span>Total: <strong>{{ analytics.bills_total }}</strong></span></div><div class="detail-row"><span>Active: <strong>{{ analytics.bills_active }}</strong></span></div><div class="detail-row"><span>Pending Confirmation: <strong>{{ analytics.bills_pending_confirmation }}</strong></span></div><div class="detail-row"><span>Completed: <strong>{{ analytics.bills_completed }}</strong></span></div></div>
+            <div class="panel panel-red"><h3>Security and Community</h3><div class="detail-row"><span>Alerts: <strong>{{ analytics.security_alerts }}</strong></span></div><div class="detail-row"><span>Market Items: <strong>{{ analytics.marketplace_items }}</strong></span></div><div class="detail-row"><span>Lost Items: <strong>{{ analytics.lost_items }}</strong> (Found: <strong>{{ analytics.lost_items_found }}</strong>)</span></div><div class="detail-row"><span>Jobs: <strong>{{ analytics.gigs }}</strong></span></div></div>
+        </div>
+        {% endif %}
+
+        {% if tab == 'broadcast' and estate_admin.can_broadcast %}
+        <div class="panel panel-orange">
+            <h3>Send Broadcast to All Residents</h3>
+            <p style="color:#b0c7e0;font-size:0.85rem;margin-bottom:1rem;">This message will be sent as a notification to every resident in {{ estate_admin.estate.name }}.</p>
+            <form method="post" class="quick-form" style="flex-direction:column;align-items:stretch;">
+                {% csrf_token %}<input type="hidden" name="send_broadcast" value="1">
+                <input type="text" name="broadcast_title" placeholder="Broadcast title" required style="width:100%;margin-bottom:0.5rem;">
+                <textarea name="broadcast_message" rows="4" placeholder="Write your message to all residents..." required style="width:100%;margin-bottom:0.8rem;resize:vertical;min-height:100px;"></textarea>
+                <button type="submit" class="btn btn-orange" style="align-self:flex-end;padding:0.5rem 1.5rem;font-size:0.85rem;">Send to All Residents</button>
+            </form>
+            <h3 style="margin-top:1.5rem;color:#fbbf24;">Your Broadcast History</h3>
+            {% for notification in recent_notifications %}
+                {% if notification.notification_type == 'broadcast_sent' and not notification.deleted_at %}
+                <div class="mini-card" style="border-left:3px solid #3b82f6;">
+                    <div class="mini-card-header">
+                        <span class="mini-card-title">{{ notification.title }}</span>
+                        <span style="font-size:0.7rem;color:#6b7280;">{{ notification.created_at|date:"M d, H:i" }}</span>
+                    </div>
+                    <p style="color:#a0aec0;font-size:0.78rem;">{{ notification.message }}</p>
+                    <div class="actions">
+                        <a href="{% url 'mark_notification_read' notification.id %}" class="btn btn-green">Dismiss</a>
+                        <a href="{% url 'delete_broadcast' notification.id %}" class="btn btn-red" onclick="return confirm('⚠️ WARNING: This will delete this broadcast for ALL residents in your estate. Are you sure?')">Delete Broadcast</a>
+                    </div>
+                </div>
+                {% endif %}
+            {% empty %}
+                <p class="empty-text">No broadcasts sent yet.</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

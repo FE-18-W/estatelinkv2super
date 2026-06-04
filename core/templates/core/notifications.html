@@ -1,0 +1,226 @@
+{% extends 'core/base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .notif-container { max-width: 800px; margin: 0 auto; padding: 1rem; }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #60a5fa;
+    text-shadow: 0 0 12px rgba(96, 165, 250, 0.4);
+    letter-spacing: 0.5px;
+  }
+  
+  .mark-all-btn {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+    padding: 0.5rem 1.2rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: 0.2s;
+    white-space: nowrap;
+  }
+  
+  .mark-all-btn:hover {
+    background: rgba(59, 130, 246, 0.4);
+    color: white;
+  }
+  
+  .notif-card {
+    background: rgba(18, 28, 46, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.8rem;
+    transition: 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .notif-card.unread {
+    border-left: 4px solid #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+  }
+  
+  .notif-card.read {
+    border-left: 4px solid #4b5563;
+    opacity: 0.7;
+  }
+  
+  .notif-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .icon-fundi {
+    background: rgba(249, 115, 22, 0.15);
+  }
+  
+  .icon-fundi svg {
+    stroke: #f97316;
+  }
+  
+  .icon-security {
+    background: rgba(239, 68, 68, 0.15);
+  }
+  
+  .icon-security svg {
+    stroke: #ef4444;
+  }
+  
+  .icon-general {
+    background: rgba(59, 130, 246, 0.15);
+  }
+  
+  .icon-general svg {
+    stroke: #60a5fa;
+  }
+  
+  .notif-content {
+    flex: 1;
+  }
+  
+  .notif-content .notif-title {
+    font-weight: 600;
+    color: #e0f0ff;
+    margin: 0 0 0.2rem 0;
+    font-size: 1rem;
+  }
+  
+  .notif-content .notif-message {
+    color: #a0aec0;
+    font-size: 0.85rem;
+    margin: 0 0 0.3rem 0;
+    line-height: 1.4;
+  }
+  
+  .notif-content .notif-time {
+    color: #6b7280;
+    font-size: 0.75rem;
+  }
+  
+  .notif-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .read-btn {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #93c5fd;
+    padding: 0.3rem 0.8rem;
+    border-radius: 0.4rem;
+    font-size: 0.75rem;
+    text-decoration: none;
+    transition: 0.2s;
+    white-space: nowrap;
+  }
+  
+  .read-btn:hover {
+    background: rgba(59, 130, 246, 0.3);
+    color: white;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7b8f;
+    background: rgba(18, 28, 46, 0.6);
+    border-radius: 1rem;
+  }
+  
+  .empty-state svg {
+    width: 50px;
+    height: 50px;
+    stroke: #6b7b8f;
+    margin-bottom: 1rem;
+  }
+  
+  .unread-count {
+    background: #3b82f6;
+    color: white;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    margin-left: 0.5rem;
+  }
+</style>
+
+<div class="notif-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      Notifications
+      {% if unread_count > 0 %}
+      <span class="unread-count">{{ unread_count }} new</span>
+      {% endif %}
+    </h1>
+    {% if unread_count > 0 %}
+    <a href="{% url 'mark_all_notifications_read' %}" class="mark-all-btn">Mark All as Read</a>
+    {% endif %}
+  </div>
+
+  {% if notifications %}
+    {% for notification in notifications %}
+    <div class="notif-card {% if notification.is_read %}read{% else %}unread{% endif %}">
+      <div class="notif-icon 
+        {% if notification.notification_type == 'fundi_request' or notification.notification_type == 'fundi_response' %}icon-fundi
+        {% elif notification.notification_type == 'security' %}icon-security
+        {% else %}icon-general{% endif %}">
+        
+        {% if notification.notification_type == 'fundi_request' or notification.notification_type == 'fundi_response' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg>
+        {% elif notification.notification_type == 'security' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        {% else %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        {% endif %}
+      </div>
+      
+      <div class="notif-content">
+        <p class="notif-title">{{ notification.title }}</p>
+        <p class="notif-message">{{ notification.message }}</p>
+        <p class="notif-time">{{ notification.created_at|date:"M d, Y - H:i" }}</p>
+      </div>
+      
+      {% if not notification.is_read %}
+      <div class="notif-actions">
+        <a href="{% url 'mark_notification_read' notification.id %}" class="read-btn">Mark Read</a>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <p>No notifications yet.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

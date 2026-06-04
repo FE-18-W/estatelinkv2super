@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+{% block title %}Approve Users{% endblock %}
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; color: #e0f0ff;">User Approvals</h1>
+        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;">
+            {{ total_pending }} Pending
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 1rem; margin-bottom: 1rem; border-radius: 0.5rem; {% if message.tags %}background: {% if 'success' in message.tags %}#059669{% elif 'error' in message.tags %}#dc2626{% else %}#3b82f6{% endif %};{% else %}background: #3b82f6;{% endif %} color: white;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if pending_users %}
+        <div style="background: rgba(18, 28, 46, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: rgba(31, 41, 55, 0.6); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left; color: #a0aec0; font-weight: 600;">Username</th>
+                        <th style="padding: 1rem; text-align: left; color: #a0aec0; font-weight: 600;">Email</th>
+                        <th style="padding: 1rem; text-align: left; color: #a0aec0; font-weight: 600;">Estate</th>
+                        <th style="padding: 1rem; text-align: left; color: #a0aec0; font-weight: 600;">Registered</th>
+                        <th style="padding: 1rem; text-align: center; color: #a0aec0; font-weight: 600;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in pending_users %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background-color 0.2s;">
+                            <td style="padding: 1rem; color: #e0f0ff; font-weight: 500;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="display: inline; margin-right: 0.5rem;">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                {{ user.username }}
+                            </td>
+                            <td style="padding: 1rem; color: #d1d5db;">{{ user.email }}</td>
+                            <td style="padding: 1rem; color: #d1d5db;">
+                                {% if user.userprofile %}
+                                    {{ user.userprofile.estate.name }}
+                                {% else %}
+                                    <span style="color: #9ca3af;">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem; color: #d1d5db; font-size: 0.9rem;">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" style="background: #059669; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.4rem; cursor: pointer; margin-right: 0.5rem; font-weight: 600; transition: background-color 0.2s;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
+                                        ✓ Approve
+                                    </button>
+                                </form>
+                                <form method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" style="background: #dc2626; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.4rem; cursor: pointer; font-weight: 600; transition: background-color 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'" onclick="return confirm('Are you sure? This will delete the user.');">
+                                        ✗ Reject
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="background: rgba(18, 28, 46, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 3rem; text-align: center;">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="margin: 0 auto 1rem;">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <h3 style="font-size: 1.3rem; font-weight: 600; color: #e0f0ff; margin-bottom: 0.5rem;">No Pending Approvals</h3>
+            <p style="color: #a0aec0;">All new users have been approved!</p>
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'dashboard' %}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 0.6rem 1.5rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

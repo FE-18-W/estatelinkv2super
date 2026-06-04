@@ -1,0 +1,166 @@
+{% extends 'core/base.html' %}
+{% block title %}My Feedback{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .feedback-container { max-width: 850px; margin: 0 auto; padding: 1.5rem; }
+  .page-title { font-size: 1.8rem; font-weight: 700; color: #00f2fe; text-shadow: 0 0 12px rgba(0, 242, 254, 0.4); margin-bottom: 0.3rem; }
+  .page-subtitle { color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem; }
+  
+  .section-title { font-size: 1.3rem; font-weight: 700; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-fundi { color: #f97316; }
+  .section-water { color: #00b4ff; }
+  
+  .feedback-card {
+    background: rgba(18, 28, 46, 0.8);
+    backdrop-filter: blur(12px);
+    border-radius: 1rem;
+    padding: 1.2rem;
+    margin-bottom: 0.8rem;
+    transition: 0.2s;
+  }
+  .feedback-card:hover { transform: translateX(4px); }
+  
+  .feedback-card.accepted { border-left: 4px solid #10b981; }
+  .feedback-card.cancelled { border-left: 4px solid #ef4444; }
+  .feedback-card.pending { border-left: 4px solid #fbbf24; }
+  .feedback-card.completed { border-left: 4px solid #3b82f6; }
+  
+  .fb-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .fb-type { font-weight: 700; color: #e0f0ff; font-size: 1rem; margin: 0; }
+  
+  .badge { padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-accepted { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+  .badge-cancelled { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+  .badge-pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); }
+  .badge-completed { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+  
+  .fb-response {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 0.8rem;
+    padding: 0.8rem 1rem;
+    margin: 0.5rem 0;
+    color: #a0aec0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .fb-response strong { color: #e0f0ff; }
+  
+  .fb-details { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.8rem; color: #6b7280; margin-top: 0.3rem; }
+  .fb-details span { display: flex; align-items: center; gap: 0.3rem; }
+  .fb-details svg { width: 14px; height: 14px; stroke: #6b7280; }
+  
+  .empty-state { text-align: center; padding: 2.5rem; color: #6b7280; }
+  .empty-state svg { width: 48px; height: 48px; stroke: #6b7280; margin-bottom: 1rem; opacity: 0.5; }
+  
+  .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: #60a5fa; text-decoration: none; font-size: 0.85rem; margin-bottom: 1rem; transition: 0.2s; }
+  .back-link:hover { color: #93c5fd; }
+  .back-link svg { width: 16px; height: 16px; stroke: currentColor; }
+</style>
+
+<div class="feedback-container">
+  
+  <a href="{% url 'dashboard' %}" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Back to Dashboard
+  </a>
+  
+  <h1 class="page-title">My Feedback</h1>
+  <p class="page-subtitle">View all responses to your fundi requests and water orders.</p>
+
+  <!-- Fundi Requests Feedback -->
+  <h2 class="section-title section-fundi">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/>
+    </svg>
+    Fundi Requests
+  </h2>
+  
+  {% if fundi_responses %}
+    {% for req in fundi_responses %}
+    <div class="feedback-card {% if req.status == 'accepted' %}accepted{% elif req.status == 'cancelled' %}cancelled{% elif req.status == 'completed' %}completed{% else %}pending{% endif %}">
+      <div class="fb-header">
+        <p class="fb-type">{{ req.fundi_type }}</p>
+        <span class="badge {% if req.status == 'accepted' %}badge-accepted{% elif req.status == 'cancelled' %}badge-cancelled{% elif req.status == 'completed' %}badge-completed{% else %}badge-pending{% endif %}">
+          {{ req.get_status_display }}
+        </span>
+      </div>
+      
+      {% if req.admin_response %}
+      <div class="fb-response">
+        <strong>Admin response:</strong> {{ req.admin_response }}
+      </div>
+      {% endif %}
+      
+      <div class="fb-details">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          {{ req.created_at|date:"M d, Y - H:i" }}
+        </span>
+        <span>{{ req.description|truncatechars:60 }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/>
+      </svg>
+      <p>No responses to your fundi requests yet.</p>
+      <p style="font-size:0.8rem;">When an admin responds, it will appear here.</p>
+    </div>
+  {% endif %}
+
+  <!-- Water Orders Feedback -->
+  <h2 class="section-title section-water">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00b4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+    </svg>
+    Water Orders
+  </h2>
+  
+  {% if water_responses %}
+    {% for order in water_responses %}
+    <div class="feedback-card {% if order.status == 'Accepted' or order.status == 'Delivered' %}accepted{% elif order.status == 'Declined' %}cancelled{% elif order.status == 'Completed' %}completed{% else %}pending{% endif %}">
+      <div class="fb-header">
+        <p class="fb-type">{{ order.vendor.name }}</p>
+        <span class="badge {% if order.status == 'Accepted' or order.status == 'Delivered' %}badge-accepted{% elif order.status == 'Declined' %}badge-cancelled{% elif order.status == 'Completed' %}badge-completed{% else %}badge-pending{% endif %}">
+          {{ order.status }}
+        </span>
+      </div>
+      
+      {% if order.vendor_response %}
+      <div class="fb-response">
+        <strong>Response:</strong> {{ order.vendor_response }}
+      </div>
+      {% endif %}
+      
+      <div class="fb-details">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          {{ order.created_at|date:"M d, Y - H:i" }}
+        </span>
+        {% if order.driver_name %}<span>Driver: {{ order.driver_name }}</span>{% endif %}
+        {% if order.eta_minutes %}<span>ETA: {{ order.eta_minutes }} min</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+      <p>No responses to your water orders yet.</p>
+      <p style="font-size:0.8rem;">When a vendor or admin responds, it will appear here.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

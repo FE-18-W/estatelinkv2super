@@ -1,0 +1,77 @@
+{% extends 'core/base.html' %}
+{% block title %}Lost & Found{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .lf-container { max-width: 1200px; margin: 0 auto; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media (max-width: 900px) { .lf-container { grid-template-columns: 1fr; } }
+  .section-title { font-size: 1.8rem; font-weight: 700; color: #c084fc; text-shadow: 0 0 12px rgba(192, 132, 252, 0.4); margin-bottom: 1.2rem; display: inline-block; letter-spacing: 0.5px; }
+  .item-card { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(12px); border-radius: 1rem; padding: 1rem 1.2rem; margin-bottom: 0.8rem; border: 1px solid rgba(245, 158, 11, 0.15); border-left: 4px solid #f59e0b; transition: 0.2s; position: relative; }
+  .item-card.found { border-left-color: #10b981; border-color: rgba(16, 185, 129, 0.15); }
+  .item-card:hover { transform: translateX(4px); }
+  .item-card:not(.found):hover { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 18px rgba(245, 158, 11, 0.15); }
+  .item-card.found:hover { border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 18px rgba(16, 185, 129, 0.15); }
+  .item-card h3 { color: #ede9fe; font-weight: 600; font-size: 1.1rem; margin: 0 0 0.3rem 0; }
+  .item-card .desc { color: #a0aec0; font-size: 0.9rem; margin: 0; }
+  .item-card .meta { display: flex; align-items: center; justify-content: space-between; margin-top: 0.6rem; font-size: 0.75rem; color: #6b7280; flex-wrap: wrap; gap: 0.3rem; }
+  .meta .reporter { display: flex; align-items: center; gap: 4px; }
+  .reporter svg { width: 14px; height: 14px; stroke: #6b7280; }
+  .found-badge { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+  .found-badge svg { width: 12px; height: 12px; stroke: currentColor; }
+  .empty-state { color: #6b7b8f; background: rgba(18, 28, 46, 0.6); border-radius: 1rem; padding: 2rem; text-align: center; }
+  .report-panel { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.2rem; padding: 1.8rem; height: fit-content; }
+  .report-panel h2 { font-size: 1.8rem; font-weight: 700; color: #c084fc; text-shadow: 0 0 12px rgba(192, 132, 252, 0.4); margin-bottom: 1rem; }
+  .report-panel input, .report-panel textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 0.7rem; color: #e0f0ff; margin-bottom: 1rem; outline: none; transition: border 0.2s; }
+  .report-panel input:focus, .report-panel textarea:focus { border-color: #c084fc; box-shadow: 0 0 10px rgba(192, 132, 252, 0.2); }
+  .report-panel textarea { resize: vertical; min-height: 100px; }
+  .submit-btn { background: linear-gradient(135deg, #a855f7, #7c3aed); border: none; color: white; padding: 0.6rem 2rem; border-radius: 0.6rem; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 0 18px rgba(168, 85, 247, 0.4); }
+  .submit-btn:hover { box-shadow: 0 0 30px rgba(168, 85, 247, 0.7); transform: scale(1.02); }
+  .phone-number { color: #34d399; font-weight: 500; }
+</style>
+
+<div class="lf-container">
+  <div>
+    <h2 class="section-title">Lost Items</h2>
+    {% for item in items %}
+      <div class="item-card {% if item.is_found %}found{% endif %}">
+        <h3>{{ item.title }}</h3>
+        <p class="desc">{{ item.description }}</p>
+        <div class="meta">
+          <span class="reporter">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            {{ item.posted_by.username }}
+            {% if item.posted_by.userprofile.phone %}
+              <span class="phone-number">· {{ item.posted_by.userprofile.phone }}</span>
+            {% endif %}
+          </span>
+          {% if item.is_found %}
+            <span class="found-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Found
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">No lost items reported yet. Help your neighbours by reporting anything lost.</div>
+    {% endfor %}
+  </div>
+
+  <div>
+    <div class="report-panel">
+      <h2>Report Lost Item</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="submit-btn">Report Lost</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

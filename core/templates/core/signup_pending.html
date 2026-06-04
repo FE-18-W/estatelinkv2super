@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% block title %}Pending Approval{% endblock %}
+{% block content %}
+<div class="flex items-center justify-center min-h-[60vh]">
+    <div style="background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border-radius: 1.2rem; padding: 3rem; text-align: center; max-width: 500px; color: #e0f0ff; border: 1px solid rgba(255,255,255,0.1);">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1rem;">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h2 style="font-size: 1.8rem; font-weight: 600;">Account Pending Approval</h2>
+        <p style="margin-top: 1rem; color: #a0aec0;">
+            Your account has been created, but an estate administrator must approve it before you can log in.
+        </p>
+        <a href="{% url 'login' %}" style="display: inline-block; margin-top: 2rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 0.6rem 2rem; border-radius: 0.6rem; font-weight: 600; text-decoration: none;">
+            Back to Login
+        </a>
+    </div>
+</div>
+{% endblock %}

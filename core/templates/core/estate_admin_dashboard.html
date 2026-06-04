@@ -1,0 +1,196 @@
+{% extends 'core/base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .admin-container { max-width: 1500px; margin: 0 auto; padding: 1rem; }
+  .page-title { font-size: 1.8rem; font-weight: 700; color: #f97316; text-shadow: 0 0 12px rgba(249,115,22,0.4); }
+  .estate-name { color: #ffb347; font-size: 1.1rem; }
+  .search-form { display: flex; gap: 0.5rem; margin: 1rem 0; }
+  .search-input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 0.6rem 1rem; color: white; outline: none; max-width: 400px; }
+  .search-input:focus { border-color: #f97316; }
+  .search-btn { background: #f97316; border: none; color: white; padding: 0.6rem 1.2rem; border-radius: 0.6rem; font-weight: 700; cursor: pointer; }
+  .tabs { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .tab { padding: 0.5rem 1.2rem; border-radius: 0.6rem; font-size: 0.85rem; font-weight: 600; text-decoration: none; color: #6b7280; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); white-space: nowrap; }
+  .tab.active, .tab:hover { background: rgba(249,115,22,0.15); border-color: #f97316; color: #f97316; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+  .stat-card { background: rgba(18,28,46,0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; padding: 1rem; text-align: center; }
+  .stat-number { font-size: 1.8rem; font-weight: 800; color: #f97316; }
+  .stat-label { color: #6b7280; font-size: 0.8rem; }
+  .card { background: rgba(18,28,46,0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.2rem; padding: 1.2rem; margin-bottom: 0.8rem; }
+  .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+  .card-title { font-weight: 700; color: #e0f0ff; font-size: 1rem; }
+  .btn { padding: 0.35rem 0.9rem; border-radius: 0.4rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none; border: none; display: inline-block; }
+  .btn-green { background: #10b981; color: white; } .btn-red { background: #ef4444; color: white; }
+  .btn-orange { background: #f97316; color: white; } .btn:hover { opacity: 0.85; }
+  .badge { padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+  .badge-green { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+  .badge-yellow { background: rgba(251,191,36,0.2); color: #fbbf24; border: 1px solid rgba(251,191,36,0.4); }
+  .badge-red { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
+  .badge-blue { background: rgba(59,130,246,0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+  .quick-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; margin-top: 0.8rem; }
+  .quick-form input, .quick-form select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; padding: 0.5rem; color: white; outline: none; }
+  .quick-form input:focus, .quick-form select:focus { border-color: #f97316; }
+  .detail-row { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem; color: #9ca3af; margin-top: 0.3rem; }
+  .detail-row strong { color: #e0f0ff; }
+  .actions { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .no-results { text-align: center; color: #6b7280; padding: 2rem; }
+</style>
+
+<div class="admin-container">
+  <h1 class="page-title">Admin Dashboard <span class="estate-name">— {{ estate.name }}</span></h1>
+  
+  <form method="get" class="search-form">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <input type="text" name="search" class="search-input" placeholder="Search..." value="{{ search }}">
+    <button type="submit" class="search-btn">Search</button>
+  </form>
+  
+  <div class="tabs">
+    <a href="?tab=overview" class="tab {% if tab == 'overview' %}active{% endif %}">Overview</a>
+    {% if estate_admin.can_manage_users %}
+    <a href="?tab=users" class="tab {% if tab == 'users' %}active{% endif %}">Users</a>
+    {% endif %}
+    {% if estate_admin.can_manage_requests %}
+    <a href="?tab=requests" class="tab {% if tab == 'requests' %}active{% endif %}">Requests</a>
+    {% endif %}
+    {% if estate_admin.can_manage_alerts %}
+    <a href="?tab=alerts" class="tab {% if tab == 'alerts' %}active{% endif %}">Alerts</a>
+    {% endif %}
+    {% if estate_admin.can_manage_services %}
+    <a href="?tab=services" class="tab {% if tab == 'services' %}active{% endif %}">Services</a>
+    {% endif %}
+    {% if estate_admin.can_manage_bills %}
+    <a href="?tab=bills" class="tab {% if tab == 'bills' %}active{% endif %}">Bills</a>
+    {% endif %}
+    <a href="?tab=notifications" class="tab {% if tab == 'notifications' %}active{% endif %}">Notifications</a>
+  </div>
+  
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-number">{{ total_users }}</div><div class="stat-label">Residents</div></div>
+    <div class="stat-card"><div class="stat-number">{{ total_pending }}</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card"><div class="stat-number">{{ total_requests }}</div><div class="stat-label">Requests</div></div>
+    <div class="stat-card"><div class="stat-number">{{ total_alerts }}</div><div class="stat-label">Alerts</div></div>
+  </div>
+
+  {% if tab == 'overview' %}
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div class="card" style="border-left: 4px solid #fbbf24;">
+        <div class="card-header"><span class="card-title">Pending Users</span><span class="badge badge-yellow">{{ total_pending }}</span></div>
+        {% for user in pending_users|slice:":5" %}
+        <div class="detail-row"><strong>{{ user.username }}</strong> · {{ user.userprofile.phone|default:"No phone" }}</div>
+        {% empty %}<p class="no-results">No pending users.</p>{% endfor %}
+      </div>
+      <div class="card" style="border-left: 4px solid #f97316;">
+        <div class="card-header"><span class="card-title">Pending Requests</span><span class="badge badge-yellow">{{ pending_requests.count }}</span></div>
+        {% for req in pending_requests|slice:":5" %}
+        <div class="detail-row"><strong>{{ req.fundi_type }}</strong> · {{ req.requester_name }}</div>
+        {% empty %}<p class="no-results">No pending requests.</p>{% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if tab == 'users' %}
+    {% for user in estate_users %}
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">{{ user.username }}</span>
+        <span class="badge {% if user.is_active %}badge-green{% else %}badge-yellow{% endif %}">{% if user.is_active %}Active{% else %}Pending{% endif %}</span>
+      </div>
+      <div class="detail-row"><span>Email: <strong>{{ user.email|default:"—" }}</strong></span><span>Phone: <strong>{{ user.userprofile.phone|default:"—" }}</strong></span></div>
+      <div class="actions">
+        {% if not user.is_active %}<a href="{% url 'admin_approve_resident' user.id %}" class="btn btn-green">Approve</a>{% endif %}
+        <a href="{% url 'admin_remove_resident' user.id %}" class="btn btn-red" onclick="return confirm('Remove?')">Remove</a>
+      </div>
+    </div>
+    {% empty %}<div class="no-results">No users found.</div>{% endfor %}
+  {% endif %}
+
+  {% if tab == 'requests' %}
+    {% for req in fundi_requests %}
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">{{ req.fundi_type }}</span>
+        <span class="badge {% if req.status == 'pending' %}badge-yellow{% elif req.status == 'accepted' %}badge-green{% elif req.status == 'completed' %}badge-blue{% else %}badge-red{% endif %}">{{ req.get_status_display }}</span>
+      </div>
+      <div class="detail-row"><span>From: <strong>{{ req.requester_name }}</strong></span><span>Phone: <strong>{{ req.requester_phone|default:"—" }}</strong></span></div>
+      <p style="color: #a0aec0; font-size: 0.85rem;">{{ req.description }}</p>
+      {% if req.status == 'pending' %}<div class="actions"><a href="{% url 'admin_respond' req.id %}" class="btn btn-orange">Respond</a></div>{% endif %}
+    </div>
+    {% empty %}<div class="no-results">No requests.</div>{% endfor %}
+  {% endif %}
+
+  {% if tab == 'alerts' %}
+    {% for alert in alerts %}
+    <div class="card" style="border-left: 4px solid #ef4444;">
+      <div class="card-header"><span class="card-title">{{ alert.title }}</span><span style="color: #6b7280; font-size: 0.75rem;">{{ alert.created_at|date:"M d, H:i" }}</span></div>
+      <p style="color: #a0aec0; font-size: 0.85rem;">{{ alert.description }}</p>
+      <div class="detail-row"><span>Reported by: <strong>{{ alert.reported_by.username|default:"Anonymous" }}</strong></span></div>
+      <div class="actions"><a href="{% url 'admin_resolve_alert' alert.id %}" class="btn btn-green" onclick="return confirm('Resolve?')">Resolve</a></div>
+    </div>
+    {% empty %}<div class="no-results">No alerts.</div>{% endfor %}
+  {% endif %}
+
+  {% if tab == 'services' %}
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">💧 Water Vendors</span></div>
+        {% for v in water_vendors %}
+        <div class="detail-row" style="justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <span><strong>{{ v.name }}</strong>{% if v.user %} — {{ v.user.username }}{% endif %}</span>
+          <a href="{% url 'request_vendor_deletion' 'water' v.id %}" class="btn btn-red" style="font-size: 0.7rem; padding: 0.3rem 0.6rem;">🗑️ Delete</a>
+        </div>
+        {% empty %}<p style="color:#6b7280;">No water vendors.</p>{% endfor %}
+        <form method="post" action="{% url 'admin_add_water_vendor' %}" class="quick-form">{% csrf_token %}<input type="text" name="name" placeholder="Vendor name" required><input type="text" name="username" placeholder="Assign username (optional)"><button type="submit" class="btn btn-orange">Add</button></form>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Gas Vendors</span></div>
+        {% for v in gas_vendors %}
+        <div class="detail-row" style="justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <span><strong>{{ v.name }}</strong>{% if v.user %} — {{ v.user.username }}{% endif %}</span>
+          <a href="{% url 'request_vendor_deletion' 'gas' v.id %}" class="btn btn-red" style="font-size: 0.7rem; padding: 0.3rem 0.6rem;">🗑️ Delete</a>
+        </div>
+        {% empty %}<p style="color:#6b7280;">No gas vendors.</p>{% endfor %}
+        <form method="post" action="{% url 'admin_add_gas_vendor' %}" class="quick-form">{% csrf_token %}<input type="text" name="name" placeholder="Vendor name" required><input type="text" name="username" placeholder="Assign username (optional)"><button type="submit" class="btn btn-orange">Add</button></form>
+      </div>
+      
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏪 Shop Owners</span></div>
+        {% for o in shop_owners %}
+        <div class="detail-row" style="justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <span><strong>{{ o.name }}</strong>{% if o.user %} — {{ o.user.username }}{% endif %}</span>
+          <a href="{% url 'request_vendor_deletion' 'shop' o.id %}" class="btn btn-red" style="font-size: 0.7rem; padding: 0.3rem 0.6rem;">🗑️ Delete</a>
+        </div>
+        {% empty %}<p style="color:#6b7280;">No shop owners.</p>{% endfor %}
+        <form method="post" action="{% url 'admin_add_shop_owner' %}" class="quick-form">{% csrf_token %}<input type="text" name="name" placeholder="Owner name" required><input type="text" name="username" placeholder="Assign username (optional)"><button type="submit" class="btn btn-orange">Add</button></form>
+      </div>
+    </div>
+    
+    <div style="margin-top: 1rem;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Garbage Schedule</span></div>
+        {% for s in garbage_schedules %}<div class="detail-row"><strong>{{ s.collection_day }}</strong> · {{ s.time|time:"H:i" }}</div>{% empty %}<p style="color:#6b7280;">No schedule.</p>{% endfor %}
+        <form method="post" action="{% url 'admin_add_garbage_schedule' %}" class="quick-form">{% csrf_token %}<select name="day" required><option value="">Day</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select><input type="time" name="time" required><button type="submit" class="btn btn-orange">Add</button></form>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if tab == 'bills' %}
+    <div class="card">
+      <div class="card-header"><span class="card-title">Add Bill for Resident</span></div>
+      <form method="post" action="{% url 'admin_add_bill' %}" class="quick-form">{% csrf_token %}<input type="text" name="username" placeholder="Username" required><input type="text" name="title" placeholder="Title" required><input type="number" name="amount" placeholder="Amount (KSh)" required><input type="date" name="due_date" required><button type="submit" class="btn btn-orange">Add Bill</button></form>
+    </div>
+  {% endif %}
+
+  {% if tab == 'notifications' %}
+    {% for n in notifications %}
+    <div class="card" style="border-left: 4px solid #3b82f6;">
+      <div class="card-header"><span class="card-title">{{ n.title }}</span><span style="color: #6b7280; font-size: 0.75rem;">{{ n.created_at|date:"M d, H:i" }}</span></div>
+      <p style="color: #a0aec0; font-size: 0.85rem;">{{ n.message }}</p>
+    </div>
+    {% empty %}<div class="no-results">No notifications.</div>{% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

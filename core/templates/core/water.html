@@ -1,0 +1,186 @@
+{% extends 'core/base.html' %}
+{% block title %}Water Delivery{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .water-container { max-width: 1200px; margin: 0 auto; padding: 1rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+  @media (max-width: 900px) { .water-container { grid-template-columns: 1fr; } }
+  
+  .section-title { font-size: 1.8rem; font-weight: 700; color: #38bdf8; text-shadow: 0 0 12px rgba(56, 189, 248, 0.4); margin-bottom: 1.2rem; letter-spacing: 0.5px; }
+  
+  .vendor-list { display: flex; flex-direction: column; gap: 1rem; }
+  .vendor-card {
+    background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(12px);
+    border: 1px solid rgba(56, 189, 248, 0.15); border-left: 4px solid #0ea5e9;
+    border-radius: 1rem; padding: 1.2rem;
+    transition: all 0.25s ease;
+  }
+  .vendor-card:hover { border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 0 20px rgba(14, 165, 233, 0.2); transform: translateX(4px); }
+  .vendor-info { margin-bottom: 0.8rem; }
+  .vendor-name { font-weight: 600; font-size: 1.1rem; color: #e0f0ff; display: flex; align-items: center; gap: 0.4rem; }
+  .vendor-name svg { width: 20px; height: 20px; stroke: #38bdf8; }
+  .vendor-rating { display: flex; align-items: center; gap: 2px; margin-top: 0.3rem; }
+  .star-filled { width: 16px; height: 16px; fill: #facc15; }
+  .star-empty { width: 16px; height: 16px; fill: #4b5563; }
+  .rating-value { font-size: 0.8rem; color: #9ca3af; margin-left: 0.3rem; }
+  
+  .order-form-card {
+    background: rgba(18, 28, 46, 0.6); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 0.8rem; padding: 1rem; margin-top: 0.5rem;
+  }
+  .order-form-card label { display: block; font-size: 0.8rem; font-weight: 600; color: #b0c7e0; margin-bottom: 0.3rem; margin-top: 0.5rem; }
+  .order-form-card input, .order-form-card select {
+    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 0.5rem; padding: 0.5rem; color: white; outline: none; font-size: 0.85rem;
+  }
+  .order-form-card select option { background: #0f192d; color: #e0f0ff; }
+  .order-form-card input:focus, .order-form-card select:focus { border-color: #38bdf8; }
+  
+  .order-btn {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7); border: none; color: white;
+    padding: 0.5rem 1.5rem; border-radius: 0.6rem; font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(14, 165, 233, 0.3); margin-top: 0.8rem; width: 100%;
+  }
+  .order-btn:hover { box-shadow: 0 0 25px rgba(14, 165, 233, 0.6); transform: scale(1.02); }
+  
+  .order-panel {
+    background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.2rem; padding: 1.5rem; height: fit-content;
+  }
+  .order-panel h2 { font-size: 1.3rem; font-weight: 600; color: #38bdf8; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .order-panel h2 svg { width: 22px; height: 22px; stroke: #38bdf8; }
+  
+  .active-order { background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.2); border-radius: 0.8rem; padding: 1rem; }
+  .order-detail { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.9rem; color: #b0c7e0; }
+  .order-detail .label { color: #6b7280; } .order-detail .value { font-weight: 500; color: #e0f0ff; }
+  .eta { font-size: 1.5rem; font-weight: 700; color: #38bdf8; margin-top: 0.5rem; }
+  .no-order { color: #6b7280; text-align: center; padding: 1rem; }
+  
+  .history-section { margin-top: 2rem; }
+  .history-card {
+    background: rgba(18, 28, 46, 0.7); border-radius: 0.8rem; padding: 1rem; margin-bottom: 0.6rem;
+    border-left: 4px solid #3b82f6;
+  }
+  .history-card.accepted { border-left-color: #10b981; }
+  .history-card.declined { border-left-color: #ef4444; }
+  .history-card.delivered { border-left-color: #10b981; opacity: 0.8; }
+  .history-card h4 { color: #e0f0ff; font-weight: 600; margin: 0; font-size: 0.95rem; }
+  .history-card .vendor-line { color: #6b7280; font-size: 0.8rem; }
+  .history-card .response { color: #a0aec0; font-size: 0.82rem; margin-top: 0.3rem; background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 0.4rem; }
+  .history-card .meta { color: #6b7280; font-size: 0.75rem; margin-top: 0.3rem; }
+  .empty-state { color: #6b7280; text-align: center; padding: 1.5rem; }
+  .badge { display: inline-block; padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.65rem; font-weight: 700; margin-left: 0.5rem; }
+  .badge-pending { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .badge-accepted { background: rgba(16,185,129,0.2); color: #34d399; }
+  .badge-declined { background: rgba(239,68,68,0.2); color: #fca5a5; }
+  .badge-ontheway { background: rgba(251,191,36,0.2); color: #fbbf24; }
+  .badge-delivered { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+</style>
+
+<div class="water-container">
+
+  <!-- LEFT: Vendor List -->
+  <div>
+    <h2 class="section-title">Water Suppliers</h2>
+    <div class="vendor-list">
+      {% for vendor in vendors %}
+        <div class="vendor-card">
+          <div class="vendor-info">
+            <div class="vendor-name">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+              </svg>
+              {{ vendor.name }}
+              {% if vendor.is_subscribed %}<span style="font-size:0.65rem;color:#fbbf24;">★ Premium</span>{% endif %}
+            </div>
+            <div class="vendor-rating">
+              {% for i in "12345" %}
+                {% if forloop.counter <= vendor.rating|floatformat:"0" %}
+                  <svg class="star-filled" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                {% else %}
+                  <svg class="star-empty" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                {% endif %}
+              {% endfor %}
+              <span class="rating-value">{{ vendor.rating }}</span>
+            </div>
+          </div>
+          
+          <form method="post" class="order-form-card">
+            {% csrf_token %}
+            <input type="hidden" name="vendor" value="{{ vendor.id }}">
+            
+            <label for="litres_{{ vendor.id }}">Litres Needed</label>
+            <input type="number" name="litres" id="litres_{{ vendor.id }}" placeholder="e.g., 20" min="1" required>
+            
+            <label for="price_{{ vendor.id }}">Price (KSh)</label>
+            <input type="number" name="price" id="price_{{ vendor.id }}" placeholder="e.g., 50" required>
+            
+            <button type="submit" class="order-btn">Order Now</button>
+          </form>
+        </div>
+      {% empty %}
+        <p class="empty-state">No water vendors available for your estate.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Order History -->
+    {% if my_orders %}
+    <div class="history-section">
+      <h3 style="color:#38bdf8;font-weight:600;margin-bottom:1rem;">My Order History</h3>
+      {% for order in my_orders %}
+      <div class="history-card {% if order.status == 'Accepted' %}accepted{% elif order.status == 'Declined' %}declined{% elif order.status == 'Delivered' %}delivered{% endif %}">
+        <h4>
+          {{ order.vendor.name }}
+          <span class="badge {% if order.status == 'Pending' %}badge-pending{% elif order.status == 'Accepted' %}badge-accepted{% elif order.status == 'Declined' %}badge-declined{% elif order.status == 'On The Way' %}badge-ontheway{% elif order.status == 'Delivered' %}badge-delivered{% endif %}">{{ order.status }}</span>
+        </h4>
+        <p class="vendor-line">{{ order.litres }}L · KSh {{ order.price }}</p>
+        {% if order.vendor_response %}
+        <div class="response">{{ order.vendor_response }}</div>
+        {% endif %}
+        {% if order.driver_name %}<p class="meta">Driver: {{ order.driver_name }}{% if order.eta_minutes %} · ETA: {{ order.eta_minutes }} min{% endif %}</p>{% endif %}
+        <p class="meta">{{ order.created_at|date:"M d, Y - H:i" }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT: Active Order -->
+  <div>
+    <div class="order-panel">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Current Order
+      </h2>
+      {% if active_order %}
+        <div class="active-order">
+          <div class="order-detail"><span class="label">Vendor</span><span class="value">{{ active_order.vendor.name }}</span></div>
+          <div class="order-detail"><span class="label">Litres</span><span class="value">{{ active_order.litres }}L</span></div>
+          <div class="order-detail"><span class="label">Price</span><span class="value">KSh {{ active_order.price }}</span></div>
+          <div class="order-detail"><span class="label">Status</span><span class="value" style="color:#38bdf8;">{{ active_order.status }}</span></div>
+          {% if active_order.driver_name %}
+          <div class="order-detail"><span class="label">Driver</span><span class="value">{{ active_order.driver_name }}</span></div>
+          {% endif %}
+          {% if active_order.eta_minutes %}
+          <div class="eta">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            {{ active_order.eta_minutes }} min
+          </div>
+          {% endif %}
+          {% if active_order.vendor_response %}
+          <div class="response" style="margin-top:0.5rem;">{{ active_order.vendor_response }}</div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="no-order">No active water order. Place one from the list!</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'core/base.html' %}
+{% block title %}Estate Jobs{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .jobs-container { max-width: 1200px; margin: 0 auto; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media (max-width: 900px) { .jobs-container { grid-template-columns: 1fr; } }
+  .section-title { font-size: 1.8rem; font-weight: 700; color: #818cf8; text-shadow: 0 0 12px rgba(129, 140, 248, 0.4); margin-bottom: 1.2rem; display: inline-block; letter-spacing: 0.5px; }
+  .gig-card { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.15); border-left: 4px solid #6366f1; border-radius: 1rem; padding: 1rem 1.2rem; margin-bottom: 0.8rem; transition: 0.2s; position: relative; }
+  .gig-card:hover { border-color: rgba(99, 102, 241, 0.6); box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); transform: translateX(4px); }
+  .gig-card h3 { color: #e0e7ff; font-weight: 600; font-size: 1.1rem; margin: 0 0 0.3rem 0; }
+  .gig-card .desc { color: #a5b4fc; font-size: 0.9rem; margin: 0 0 0.4rem 0; }
+  .gig-card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem; flex-wrap: wrap; gap: 0.3rem; }
+  .meta .posted-by { display: flex; align-items: center; gap: 4px; }
+  .posted-by svg { width: 14px; height: 14px; stroke: #6b7280; }
+  .apply-btn { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #c7d2fe; padding: 0.3rem 1rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.8rem; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .apply-btn:hover { background: rgba(99, 102, 241, 0.4); border-color: #818cf8; color: white; box-shadow: 0 0 10px rgba(99, 102, 241, 0.4); }
+  .apply-btn svg { width: 14px; height: 14px; stroke: currentColor; }
+  .empty-state { color: #6b7b8f; background: rgba(18, 28, 46, 0.6); border-radius: 1rem; padding: 2rem; text-align: center; }
+  .post-panel { background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.2rem; padding: 1.8rem; height: fit-content; }
+  .post-panel h2 { font-size: 1.8rem; font-weight: 700; color: #818cf8; text-shadow: 0 0 12px rgba(129, 140, 248, 0.4); margin-bottom: 1rem; }
+  .post-panel input, .post-panel textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 0.7rem; color: #e0f0ff; margin-bottom: 1rem; outline: none; transition: border 0.2s; }
+  .post-panel input:focus, .post-panel textarea:focus { border-color: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.2); }
+  .post-panel textarea { resize: vertical; min-height: 100px; }
+  .submit-btn { background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: white; padding: 0.6rem 2rem; border-radius: 0.6rem; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 0 18px rgba(99, 102, 241, 0.4); }
+  .submit-btn:hover { box-shadow: 0 0 30px rgba(99, 102, 241, 0.7); transform: scale(1.02); }
+  .phone-number { color: #34d399; font-weight: 500; }
+</style>
+
+<div class="jobs-container">
+  <div>
+    <h2 class="section-title">Estate Jobs</h2>
+    {% for gig in gigs %}
+      <div class="gig-card">
+        <h3>{{ gig.title }}</h3>
+        <p class="desc">{{ gig.description }}</p>
+        <div class="meta">
+          <span class="posted-by">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            {{ gig.posted_by.username }}
+            {% if gig.posted_by.userprofile.phone %}<span class="phone-number">· {{ gig.posted_by.userprofile.phone }}</span>{% endif %}
+          </span>
+          <a href="mailto:{{ gig.posted_by.email }}" class="apply-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+            </svg>
+            Apply
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">No jobs available. Be the first to post one!</div>
+    {% endfor %}
+  </div>
+  <div>
+    <div class="post-panel">
+      <h2>Post a Job</h2>
+      <form method="post">
+        {% csrf_token %}{{ form.as_p }}
+        <button type="submit" class="submit-btn">Publish Job</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

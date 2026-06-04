@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+{% block title %}Manage Custom Tabs{% endblock %}
+{% block content %}
+<style>
+  body { background: #0a0f1e; }
+  .manage-container {
+    max-width: 800px; margin: 0 auto; padding: 1rem;
+  }
+  h2 { color: #e0f0ff; font-weight: 700; margin-bottom: 1.5rem; }
+  .tab-card {
+    background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem;
+    padding: 1rem; margin-bottom: 0.8rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .tab-info { color: #e0f0ff; }
+  .delete-btn {
+    background: #ef4444; border: none; color: white;
+    padding: 0.3rem 1rem; border-radius: 0.5rem; cursor: pointer;
+  }
+  .add-form {
+    background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(15px);
+    border-radius: 1.2rem; padding: 1.5rem; margin-top: 2rem;
+  }
+  .add-form input {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem;
+    padding: 0.6rem; color: white; margin-bottom: 0.8rem; outline: none;
+  }
+  .add-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none; color: white; padding: 0.6rem 2rem; border-radius: 0.6rem;
+    font-weight: 600; cursor: pointer;
+  }
+</style>
+
+<div class="manage-container">
+  <h2>Manage Custom Tabs for {{ estate_admin.estate.name }}</h2>
+
+  {% for tab in tabs %}
+    <div class="tab-card">
+      <div class="tab-info">
+        <strong>{{ tab.name }}</strong> —
+        <span style="color: #9ca3af; font-size: 0.85rem;">{{ tab.url }}</span>
+      </div>
+      <form method="post" action="{% url 'delete_tab' tab.id %}">
+        {% csrf_token %}
+        <button type="submit" class="delete-btn">Delete</button>
+      </form>
+    </div>
+  {% empty %}
+    <p style="color: #6b7280;">No custom tabs yet.</p>
+  {% endfor %}
+
+  <div class="add-form">
+    <h3 style="color: #e0f0ff; margin-bottom: 1rem;">Add New Tab</h3>
+    <form method="post">
+      {% csrf_token %}
+      <input type="text" name="name" placeholder="Tab name (e.g., Clinic)" required>
+      <input type="text" name="url" placeholder="URL (e.g., https://clinic.com)" required>
+      <input type="text" name="color" placeholder="Color (e.g., #00f2fe)" value="#00f2fe">
+      <input type="text" name="icon_svg" placeholder="SVG icon (optional)">
+      <button type="submit" class="add-btn">Add Tab</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

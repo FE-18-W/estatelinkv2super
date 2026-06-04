@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+{% block title %}Approve Estate Admins{% endblock %}
+{% block content %}
+<style>
+  body { background: #0a0f1e !important; }
+  .container { max-width: 800px; margin: 0 auto; padding: 1rem; }
+  .admin-row {
+    background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(12px);
+    border-radius: 1rem; padding: 1rem; margin-bottom: 0.8rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .approve-btn { background: #10b981; border: none; color: white; padding: 0.4rem 1rem; border-radius: 0.5rem; cursor: pointer; }
+  .reject-btn { background: #ef4444; border: none; color: white; padding: 0.4rem 1rem; border-radius: 0.5rem; cursor: pointer; }
+</style>
+
+<div class="container">
+  <h2 style="color: #e0f0ff; font-weight: 700; margin-bottom: 1.5rem;">Approve Estate Admins</h2>
+  {% for admin in pending %}
+    <div class="admin-row">
+      <div>
+        <strong style="color: #e0f0ff;">{{ admin.user.username }}</strong><br>
+        <span style="color: #9ca3af;">Estate: {{ admin.estate.name }}</span>
+      </div>
+      <form method="post" style="display: flex; gap: 0.5rem;">
+        {% csrf_token %}
+        <input type="hidden" name="admin_id" value="{{ admin.id }}">
+        <button type="submit" name="action" value="approve" class="approve-btn">Approve</button>
+        <button type="submit" name="action" value="reject" class="reject-btn">Reject</button>
+      </form>
+    </div>
+  {% empty %}
+    <p style="color: #6b7280;">No pending admin requests.</p>
+  {% endfor %}
+</div>
+{% endblock %}

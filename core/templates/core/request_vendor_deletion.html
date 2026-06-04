@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+{% block title %}Request Vendor Deletion{% endblock %}
+{% block content %}
+
+<style>
+  body { background: #0a0f1e !important; }
+  .deletion-container { max-width: 600px; margin: 2rem auto; padding: 1rem; }
+  .deletion-card {
+    background: rgba(18, 28, 46, 0.8); backdrop-filter: blur(20px);
+    border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 1.5rem;
+    padding: 2rem;
+  }
+  .deletion-card h2 { color: #ef4444; font-weight: 700; margin-bottom: 1.5rem; }
+  .vendor-info { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.8rem; margin-bottom: 1.5rem; }
+  .vendor-info-label { color: #6b7280; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .vendor-info-value { color: #fbbf24; font-weight: 600; font-size: 1.1rem; }
+  
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label { display: block; font-weight: 600; color: #a0aec0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+  .form-group textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.8rem; padding: 0.8rem; color: white; outline: none; resize: vertical; min-height: 120px; font-family: 'Inter', sans-serif; }
+  .form-group textarea:focus { border-color: #ef4444; background: rgba(255,255,255,0.08); }
+  
+  .btn-group { display: flex; gap: 0.8rem; margin-top: 2rem; flex-wrap: wrap; }
+  .btn-confirm { background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; padding: 0.8rem 1.5rem; border-radius: 0.6rem; font-weight: 700; cursor: pointer; }
+  .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(239,68,68,0.3); }
+  .btn-cancel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #a0aec0; padding: 0.8rem 1.5rem; border-radius: 0.6rem; font-weight: 700; cursor: pointer; }
+  .btn-cancel:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); }
+  
+  .warning-banner { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 0.8rem; padding: 1rem; margin-bottom: 1.5rem; }
+  .warning-banner-title { font-weight: 700; color: #fca5a5; margin-bottom: 0.5rem; }
+  .warning-banner-text { color: #9ca3af; font-size: 0.9rem; line-height: 1.6; }
+</style>
+
+<div class="deletion-container">
+  <div class="deletion-card">
+    <h2>⚠️ Request Vendor Deletion</h2>
+    
+    <div class="warning-banner">
+      <div class="warning-banner-title">This action requires approval</div>
+      <div class="warning-banner-text">A deletion request will be submitted to the super admin for approval. The vendor will only be removed after approval.</div>
+    </div>
+    
+    <div class="vendor-info">
+      <div class="vendor-info-label">Vendor Name</div>
+      <div class="vendor-info-value">{{ vendor_name }}</div>
+      <div style="margin-top: 0.8rem; color: #6b7280; font-size: 0.85rem; text-transform: capitalize;">{{ vendor_type }} Vendor</div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="reason">Reason for Deletion (Optional)</label>
+        <textarea name="reason" id="reason" placeholder="Explain why this vendor should be deleted..."></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button type="submit" class="btn-confirm">🗑️ Submit Deletion Request</button>
+        <a href="{% url 'dashboard' %}" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
